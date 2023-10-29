@@ -1,4 +1,4 @@
-import React, { HTMLProps } from "react";
+import { HTMLProps } from "react";
 import { cn } from "../../utils/cn";
 
 interface Props {}
