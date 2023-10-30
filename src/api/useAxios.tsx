@@ -3,6 +3,8 @@ import axios, { AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { tokenAtom } from "../store/store";
+
+console.log(import.meta.env.VITE_API_URL);
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
