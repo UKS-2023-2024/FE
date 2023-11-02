@@ -3,19 +3,16 @@ import { cn } from "../../utils/cn";
 
 interface Props {
   children: ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export const Button = ({
   children,
-  onClick,
+  onClick = () => {},
   className = "",
 }: Props & HTMLProps<HTMLInputElement>) => {
   return (
-    <button
-      onClick={onClick}
-      className={cn("h-10 bg-green-600 rounded text-white", className)}
-    >
+    <button onClick={onClick} className={cn("h-10 bg-green-600 rounded text-white", className)}>
       {children}
     </button>
   );
