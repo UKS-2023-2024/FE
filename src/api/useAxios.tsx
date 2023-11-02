@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import axios, { AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { tokenAtom } from "../store/store";
+import { currentUserAtom, tokenAtom } from "../store/store";
 
 console.log(import.meta.env.VITE_API_URL);
 export const axiosInstance = axios.create({
@@ -12,20 +12,19 @@ export const axiosInstance = axios.create({
 export const useAxios = () => {
   const navigate = useNavigate();
   const [token, setToken] = useAtom(tokenAtom);
-
-  const logout = () => {
-    setToken(null);
-  };
+  const [, setCurrentUser] = useAtom(currentUserAtom);
 
   useEffect(() => {
-    const tokenInterceptor = axiosInstance.interceptors.request.use(
-      (config) => {
-        if (!config.headers.Authorization) {
-          config.headers.setAuthorization(`Bearer ${token}`);
-        }
-        return config;
+    const logout = () => {
+      setToken(null);
+      setCurrentUser(null);
+    };
+    const tokenInterceptor = axiosInstance.interceptors.request.use((config) => {
+      if (!config.headers.Authorization) {
+        config.headers.setAuthorization(`Bearer ${token}`);
       }
-    );
+      return config;
+    });
 
     const unauthorizedInterceptor = axiosInstance.interceptors.response.use(
       function (response: AxiosResponse) {
@@ -44,7 +43,7 @@ export const useAxios = () => {
       axiosInstance.interceptors.request.eject(tokenInterceptor);
       axiosInstance.interceptors.response.eject(unauthorizedInterceptor);
     };
-  }, [logout, navigate, token]);
+  }, [navigate, setCurrentUser, setToken, token]);
   return {
     axios: axiosInstance,
   };
