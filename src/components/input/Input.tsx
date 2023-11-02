@@ -2,17 +2,27 @@
 import { HTMLProps } from "react";
 import { cn } from "../../utils/cn";
 import React from "react";
+import { FieldError } from "react-hook-form";
 
-interface InputProps extends HTMLProps<HTMLInputElement> {}
+interface InputProps extends HTMLProps<HTMLInputElement> {
+  hasError?: FieldError | undefined;
+  errorMessage?: string | undefined;
+}
 
 export const Input = React.forwardRef(
-  ({ className = "", ...props }: InputProps, ref: React.LegacyRef<HTMLInputElement>) => {
+  (
+    { hasError, errorMessage, className = "", ...props }: InputProps,
+    ref: React.LegacyRef<HTMLInputElement>
+  ) => {
     return (
-      <input
-        {...props}
-        ref={ref}
-        className={cn("border border-green-700 rounded p-2", className)}
-      />
+      <>
+        <input
+          {...props}
+          ref={ref}
+          className={cn("border border-green-700 rounded p-2", className)}
+        />
+        <p className="h-6 mt-2">{hasError && errorMessage}</p>
+      </>
     );
   }
 );

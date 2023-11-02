@@ -46,21 +46,24 @@ export const LoginForm = ({ isOpen, setOpen }: Props) => {
       <Modal.Body>
         <div className="flex flex-col align-middle mb-4">
           <div className=" w-2/3 mx-auto">
-            <form onSubmit={handleSubmit(handleOnSubmit)} className="flex flex-col gap-4">
-              <div className="flex-grow">
-                <Input type="email" placeholder="Email" className="w-full" {...register("email")} />
-                {errors.email ? <p>{errors.email.message} </p> : <p className="h-6"></p>}
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full"
-                  {...register("password")}
-                />
-                {errors.password ? <p>{errors.password.message} </p> : <p className="h-6"></p>}
-              </div>
-              <Button className="w-full" type="submit" value="Submit">
+            <form onSubmit={handleSubmit(handleOnSubmit)}>
+              <Input
+                type="email"
+                placeholder="Email"
+                className="w-full"
+                {...register("email")}
+                hasError={errors.email}
+                errorMessage={errors.email?.message}
+              />
+              <Input
+                type="password"
+                placeholder="Password"
+                className="w-full mt-4"
+                hasError={errors.password}
+                errorMessage={errors.password?.message}
+                {...register("password")}
+              />
+              <Button className="w-full mt-4" type="submit" value="Submit">
                 Login
               </Button>
             </form>
