@@ -1,5 +1,6 @@
 
 export type SocialAccount = {
-   value: string;
+    id: string
+    value: string;
   };
   
