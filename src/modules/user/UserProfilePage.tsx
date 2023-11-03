@@ -1,12 +1,16 @@
 import { Input } from "../../components/input/Input";
 import { Button } from "../../components/button/Button";
 import { useEffect, useState } from "react";
-import { currentUserAtom } from "../../store/store";
+import { currentUserAtom, tokenAtom } from "../../store/store";
 import { useAtom } from "jotai";
 import { useUpdateUser } from "../../api/mutations/useUpdateUser";
+import { useDeleteUser } from "../../api/mutations/useDeleteUser";
+import { useNavigate } from "react-router-dom";
 
 export const UserProfilePage = () => {
-  const [currentUser] = useAtom(currentUserAtom);
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
+  const [, setToken] = useAtom(tokenAtom);
   const [isDisabled, setIsDisabled] = useState(true);
   const [updateUserParam, setUpdateUserParam] = useState({
     fullName: currentUser?.fullName || "",
@@ -57,12 +61,24 @@ export const UserProfilePage = () => {
   };
 
   const { mutateAsync: updateUser } = useUpdateUser();
+  const { mutateAsync: deleteUser } = useDeleteUser();
 
   const handleUpdate = async () => {
     await updateUser(updateUserParam);
     setIsDisabled(true);
   };
 
+  const handleDelete = async () => {
+    await deleteUser();
+    logout()
+    
+  };
+
+  const logout = () => {
+    setToken(null);
+    setCurrentUser(null);
+    navigate("/")
+  };
 
   return (
     <div className="mt-20 w-full h-full flex justify-center items-center">
@@ -164,6 +180,10 @@ export const UserProfilePage = () => {
             </Button>
           </div>
         )}
+
+      <button onClick={handleDelete} style={{ backgroundColor: 'red', color: 'white', height:'2.5rem', width:'50%', marginTop: '5px'}}>
+        Delete profile
+      </button>
       </div>
     </div>
   );
