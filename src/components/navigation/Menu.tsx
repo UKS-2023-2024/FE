@@ -10,8 +10,14 @@ export const Menu = () => {
   const [openLogin, setOpenLogin] = useState(false);
   const [token, setToken] = useAtom(tokenAtom);
   const [, setCurrentUser] = useAtom(currentUserAtom);
+  const [currentUser] = useAtom(currentUserAtom);
+
   const handleRegisterClick = () => {
     navigate("/register");
+  };
+
+  const handleUserProfileClick = () => {
+    navigate("/profile");
   };
 
   const logout = () => {
@@ -32,10 +38,14 @@ export const Menu = () => {
             Login
           </Button>
         </div>
-      ) : (
+      ) : ( <div>
+        <Button onClick={handleUserProfileClick} className="w-20 bg-transparent text-white">
+          {currentUser?.fullName}
+        </Button>
         <Button onClick={logout} className="w-20 bg-transparent text-white">
           Logout
         </Button>
+        </div>
       )}
       <LoginForm isOpen={openLogin} setOpen={setOpenLogin} />
     </div>
