@@ -80,10 +80,10 @@ export const UserProfilePage = () => {
     navigate("/")
   };
 
-  return (
-    <div className="mt-20 w-full h-full flex justify-center items-center">
-      <div className="w-1/2 flex flex-col items-center shadow-lg pt-14 rounded">
-        <label className="mb-0">Name</label>
+  return  (
+    <div className="mt-20 w-full flex justify-center items-center">
+      <div className="w-1/2 flex flex-col items-center shadow-lg p-6 rounded">
+        <label className="mb-2">Name</label>
         <Input
           placeholder="Name"
           className="w-1/2"
@@ -96,17 +96,17 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-0">Bio</label>
+        <label className="mb-2">Bio</label>
         <textarea
           placeholder="Bio"
-          className="w-1/2 mb-5"
+          className="w-1/2 mb-2"
           value={updateUserParam.bio}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, bio: e.target.value })
           }
           disabled={isDisabled}
         />
-        <label className="mb-0">Company</label>
+        <label className="mb-2">Company</label>
         <Input
           placeholder="Company"
           className="w-1/2"
@@ -116,7 +116,7 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-0">Location</label>
+        <label className="mb-2">Location</label>
         <Input
           placeholder="Location"
           className="w-1/2"
@@ -126,7 +126,7 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-0">Website</label>
+        <label className="mb-2">Website</label>
         <Input
           placeholder="Website"
           className="w-1/2"
@@ -136,11 +136,11 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-0">Social accounts</label>
-        <div className="w-full">
+        <label className="mb-2">Social accounts</label>
+        <div className="w-full flex justify-center">
           <ul>
             {updateUserParam.socialAccounts.map((account, index) => (
-              <li key={index} className="flex justify-center">
+              <li key={index} className="flex items-center mb-2">
                 <Input
                   placeholder="Link to social account"
                   disabled={isDisabled}
@@ -155,7 +155,7 @@ export const UserProfilePage = () => {
                   }}
                 />
                 {!isDisabled && (
-                  <Button onClick={() => removeSocialAccount(index)}>
+                  <Button onClick={() => removeSocialAccount(index)} className="ml-2 px-2">
                     Remove
                   </Button>
                 )}
@@ -164,26 +164,29 @@ export const UserProfilePage = () => {
           </ul>
         </div>
         {!isDisabled && (
-          <Button onClick={addSocialAccount}>Add Social Account</Button>
+          <Button onClick={addSocialAccount} className="mt-2 px-2">Add Social Account</Button>
         )}
-        {isDisabled ? (
-          <Button onClick={enableEditing} className="w-1/2 mt-2">
-            Update
-          </Button>
-        ) : (
-          <div className="w-full">
-            <Button onClick={handleUpdate} className="w-1/2 mt-2">
-              Save
-            </Button>
-            <Button onClick={disableEditing} className="w-1/2 mt-2">
-              Close
-            </Button>
-          </div>
-        )}
-
-      <button onClick={handleDelete} style={{ backgroundColor: 'red', color: 'white', height:'2.5rem', width:'50%', marginTop: '5px'}}>
-        Delete profile
-      </button>
+        <div className="w-full mt-2">
+          {isDisabled ? (
+            <div className="flex justify-center items-center">
+              <Button onClick={enableEditing} className="w-1/2">
+                Update
+              </Button>
+            </div>
+          ) : (
+            <div className="flex space-x-4">
+              <Button onClick={handleUpdate} className="w-1/2">
+                Save
+              </Button>
+              <Button onClick={disableEditing} className="w-1/2">
+                Close
+              </Button>
+            </div>
+          )}
+        </div>
+        <button onClick={handleDelete} className="bg-red-500 text-white mt-2 w-1/2 h-10">
+          Delete profile
+        </button>
       </div>
     </div>
   );
