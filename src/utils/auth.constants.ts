@@ -5,8 +5,12 @@ export const LOGIN_VALIDATION_SCHEMA = yup.object({
   password: yup.string().required().min(6),
 });
 
+export const CREATE_ORGANIZATION_VALIDATION_SCHEMA = yup.object({
+  name: yup.string().required(),
+  contactEmail: yup.string().required().email(),
+});
 
 export const LOGIN_DEFAULT_VALUES = {
-  email: '',
-  password: '',
+  email: "",
+  password: "",
 };

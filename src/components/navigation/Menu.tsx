@@ -26,25 +26,35 @@ export const Menu = () => {
   };
 
   return (
-    <div className="flex justify-end h-[5%] bg-gray-900">
+    <div className="flex justify-end h-[5%] bg-black border-b-[1px]  border-gray-600">
       \
       {token == null ? (
         <div>
           {" "}
-          <Button onClick={handleRegisterClick} className="w-20 bg-transparent text-white">
+          <Button
+            onClick={handleRegisterClick}
+            className="w-20 bg-transparent text-white"
+          >
             Register
           </Button>
-          <Button onClick={() => setOpenLogin(true)} className="w-20 bg-transparent text-white">
+          <Button
+            onClick={() => setOpenLogin(true)}
+            className="w-20 bg-transparent text-white"
+          >
             Login
           </Button>
         </div>
-      ) : ( <div>
-        <Button onClick={handleUserProfileClick} className="w-20 bg-transparent text-white">
-          {currentUser?.fullName}
-        </Button>
-        <Button onClick={logout} className="w-20 bg-transparent text-white">
-          Logout
-        </Button>
+      ) : (
+        <div>
+          <Button
+            onClick={handleUserProfileClick}
+            className="w-20 bg-transparent text-white"
+          >
+            {currentUser?.fullName}
+          </Button>
+          <Button onClick={logout} className="w-20 bg-transparent text-white">
+            Logout
+          </Button>
         </div>
       )}
       <LoginForm isOpen={openLogin} setOpen={setOpenLogin} />

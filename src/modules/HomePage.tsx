@@ -1,9 +1,9 @@
-import { Menu } from "../components/navigation/Menu";
+import { Sidenav } from "../components/sidenav/Sidenav";
 
 export const HomePage = () => {
   return (
-    <div>
-      <Menu />
+    <div className="h-full bg-black">
+      <Sidenav />
     </div>
   );
 };

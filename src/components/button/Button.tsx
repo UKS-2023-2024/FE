@@ -12,7 +12,13 @@ export const Button = ({
   className = "",
 }: Props & HTMLProps<HTMLInputElement>) => {
   return (
-    <button onClick={onClick} className={cn("h-10 bg-green-600 rounded text-white", className)}>
+    <button
+      onClick={onClick}
+      className={cn(
+        "h-10 bg-green-600 rounded text-white hover:bg-green-500",
+        className
+      )}
+    >
       {children}
     </button>
   );
