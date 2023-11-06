@@ -5,6 +5,7 @@ import { UserProfilePage } from "./modules/user/UserProfilePage";
 import { HomePage } from "./modules/HomePage";
 import { CreateOrganizationPage } from "./modules/organization/CreateOrganizationPage";
 import { OrganizationPage } from "./modules/organization/OrganizationPage";
+import { OrganizationSettingsPage } from "./modules/organization/OrganizationSettingsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -30,6 +31,12 @@ export const routes: RouteObject[] = [
       {
         path: `/organizations/:name`,
         element: <OrganizationPage />,
+        children: [
+          {
+            path: "settings",
+            element: <OrganizationSettingsPage />,
+          },
+        ],
       },
     ],
   },

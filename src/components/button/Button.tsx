@@ -15,7 +15,7 @@ export const Button = ({
     <button
       onClick={onClick}
       className={cn(
-        "h-10 bg-green-600 rounded text-white hover:bg-green-500",
+        "bg-green-600 rounded text-white hover:bg-green-500 p-2",
         className
       )}
     >
