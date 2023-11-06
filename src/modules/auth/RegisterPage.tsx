@@ -19,8 +19,9 @@ export const RegisterPage = () => {
     });
   };
   return (
-    <div className="w-full h-full flex justify-center items-center">
-      <div className="w-1/2 h-1/2 flex flex-col items-center gap-3 shadow-lg pt-14 rounded">
+    <div className="w-full h-full flex justify-center bg-[#11151C]">
+      <div className="w-1/2 flex flex-col items-center mt-20">
+        <p className="text-white text-2xl mb-6">Register</p>
         <Input
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}

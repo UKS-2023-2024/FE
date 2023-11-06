@@ -21,7 +21,7 @@ export const Input = React.forwardRef(
           ref={ref}
           className={cn("border border-green-700 rounded p-2", className)}
         />
-        <p className="h-6 mt-2">{hasError && errorMessage}</p>
+        <p className="h-6 mt-2 text-red-600">{hasError && errorMessage}</p>
       </>
     );
   }
