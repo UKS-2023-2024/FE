@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { useGetRepositoriesForOrganization } from "../../api/query/repository/useRepositoriesForOrganization";
 import { Repository } from "../../store/model/repository.model";
 import { useNavigate } from "react-router-dom";
+import { Button } from "flowbite-react";
 
 export const OrganizationRepositoriesPage = () => {
   const [organization] = useAtom(currentOrganizationAtom);
@@ -17,6 +18,7 @@ export const OrganizationRepositoriesPage = () => {
 
   return (
     <div className="w-full flex flex-col items-center pt-6">
+    <Button onClick={() => navigate('/new-repository')}>New repository</Button>
     {organizationRepositories.map((repo: Repository) => (
       <div key={repo.id} className="flex gap-8 border border-white rounded p-10 w-1/2">
         <div className="flex flex-col">

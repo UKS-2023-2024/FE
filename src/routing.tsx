@@ -9,6 +9,7 @@ import { OrganizationSettingsPage } from "./modules/organization/OrganizationSet
 import { OrganizationRepositoriesPage } from "./modules/organization/OrganizationRepositoriesPage";
 import { RepositoryPage } from "./modules/repository/RepositoryPage";
 import { RepositorySettingsPage } from "./modules/repository/RepositorySettingsPage";
+import { CreateRepositoryPage } from "./modules/repository/CreateRepositoryPage";
 
 export const routes: RouteObject[] = [
   {
@@ -55,6 +56,10 @@ export const routes: RouteObject[] = [
           }
         ]
       },
+      {
+        path: "/new-repository",
+        element: <CreateRepositoryPage/>,
+      }
     ],
   },
 ];
