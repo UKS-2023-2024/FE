@@ -9,9 +9,6 @@ import { tokenAtom } from "../../store/store";
 export const useDeleteUser = () => {
   const { axios } = useAxios();
   const { toast } = useToast();
-  const [token, setToken] = useAtom(tokenAtom)
-  const { mutateAsync: getCurrentUser } = useGetCurrentUser();
-
   return useMutation({
     mutationFn: () =>
       axios.delete("/user").then((res) => res.data),

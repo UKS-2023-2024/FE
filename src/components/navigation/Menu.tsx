@@ -48,7 +48,7 @@ export const Menu = () => {
         <div>
           <Button
             onClick={handleUserProfileClick}
-            className="w-20 bg-transparent text-white"
+            className="bg-transparent text-white"
           >
             {currentUser?.fullName}
           </Button>
