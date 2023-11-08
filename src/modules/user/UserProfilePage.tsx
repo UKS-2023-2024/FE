@@ -81,12 +81,13 @@ export const UserProfilePage = () => {
   };
 
   return  (
-    <div className="mt-20 w-full flex justify-center items-center">
+    <div className="min-h-screen bg-[#11151C]">
+    <div className="w-full flex justify-center items-center">
       <div className="w-1/2 flex flex-col items-center shadow-lg p-6 rounded">
-        <label className="mb-2">Name</label>
+        <label className="mb-2 text-white">Name</label>
         <Input
           placeholder="Name"
-          className="w-1/2"
+          className="w-1/2 bg-white"
           value={updateUserParam.fullName}
           onChange={(e) =>
             setUpdateUserParam({
@@ -96,7 +97,7 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-2">Bio</label>
+        <label className="mb-2 text-white">Bio</label>
         <textarea
           placeholder="Bio"
           className="w-1/2 mb-2"
@@ -106,37 +107,37 @@ export const UserProfilePage = () => {
           }
           disabled={isDisabled}
         />
-        <label className="mb-2">Company</label>
+        <label className="mb-2 text-white">Company</label>
         <Input
           placeholder="Company"
-          className="w-1/2"
+          className="w-1/2 bg-white"
           value={updateUserParam.company}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, company: e.target.value })
           }
           disabled={isDisabled}
         />
-        <label className="mb-2">Location</label>
+        <label className="mb-2 text-white">Location</label>
         <Input
           placeholder="Location"
-          className="w-1/2"
+          className="w-1/2 bg-white"
           value={updateUserParam.location}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, location: e.target.value })
           }
           disabled={isDisabled}
         />
-        <label className="mb-2">Website</label>
+        <label className="mb-2 text-white">Website</label>
         <Input
           placeholder="Website"
-          className="w-1/2"
+          className="w-1/2 bg-white"
           value={updateUserParam.website}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, website: e.target.value })
           }
           disabled={isDisabled}
         />
-        <label className="mb-2">Social accounts</label>
+        <label className="mb-2 text-white">Social accounts</label>
         <div className="w-full flex justify-center">
           <ul>
             {updateUserParam.socialAccounts.map((account, index) => (
@@ -188,6 +189,7 @@ export const UserProfilePage = () => {
           Delete profile
         </button>
       </div>
+    </div>
     </div>
   );
 };
