@@ -9,7 +9,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="h-screen w-full">
+      <div className="w-full h-screen">
         <Menu />
         <div className="h-[95%]">
           <Outlet />

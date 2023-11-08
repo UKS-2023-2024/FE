@@ -6,6 +6,11 @@ import { HomePage } from "./modules/HomePage";
 import { CreateOrganizationPage } from "./modules/organization/CreateOrganizationPage";
 import { OrganizationPage } from "./modules/organization/OrganizationPage";
 import { OrganizationSettingsPage } from "./modules/organization/OrganizationSettingsPage";
+import { OrganizationRepositoriesPage } from "./modules/repository/OrganizationRepositoriesPage";
+import { RepositoryPage } from "./modules/repository/RepositoryPage";
+import { RepositorySettingsPage } from "./modules/repository/RepositorySettingsPage";
+import { CreateRepositoryPage } from "./modules/repository/CreateRepositoryPage";
+import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage";
 
 export const routes: RouteObject[] = [
   {
@@ -36,8 +41,30 @@ export const routes: RouteObject[] = [
             path: "settings",
             element: <OrganizationSettingsPage />,
           },
+          {
+            path: "repositories",
+            element: <OrganizationRepositoriesPage/>,
+          }
         ],
       },
+      {
+        path: "/repository/:name",
+        element: <RepositoryPage/>,
+        children: [
+          {
+            path: "settings",
+            element: <RepositorySettingsPage/>,
+          }
+        ]
+      },
+      {
+        path: "/new-repository",
+        element: <CreateRepositoryPage/>,
+      },
+      {
+        path: "/repositories",
+        element: <UserRepositoriesPage/>,
+      }
     ],
   },
 ];
