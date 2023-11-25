@@ -11,6 +11,8 @@ import { RepositoryPage } from "./modules/repository/RepositoryPage";
 import { RepositorySettingsPage } from "./modules/repository/RepositorySettingsPage";
 import { CreateRepositoryPage } from "./modules/repository/CreateRepositoryPage";
 import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage";
+import { RepositoryIssuePage } from "./modules/repository/RepositoryIssuePage";
+import { RepositoryMilestonePage } from "./modules/repository/RepositoryMilestonePage";
 
 export const routes: RouteObject[] = [
   {
@@ -43,28 +45,36 @@ export const routes: RouteObject[] = [
           },
           {
             path: "repositories",
-            element: <OrganizationRepositoriesPage/>,
-          }
+            element: <OrganizationRepositoriesPage />,
+          },
         ],
       },
       {
         path: "/repository/:name",
-        element: <RepositoryPage/>,
+        element: <RepositoryPage />,
         children: [
           {
             path: "settings",
-            element: <RepositorySettingsPage/>,
-          }
-        ]
+            element: <RepositorySettingsPage />,
+          },
+          {
+            path: "issues",
+            element: <RepositoryIssuePage />,
+          },
+          {
+            path: "milestones",
+            element: <RepositoryMilestonePage />,
+          },
+        ],
       },
       {
         path: "/new-repository",
-        element: <CreateRepositoryPage/>,
+        element: <CreateRepositoryPage />,
       },
       {
         path: "/repositories",
-        element: <UserRepositoriesPage/>,
-      }
+        element: <UserRepositoriesPage />,
+      },
     ],
   },
 ];

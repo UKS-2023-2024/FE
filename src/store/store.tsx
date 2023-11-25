@@ -15,7 +15,13 @@ export const currentOrganizationAtom = atomWithStorage<Organization | null>(
   null
 );
 
-export const currentRepositoryAtom = atomWithStorage<Repository | null>(
+export const currentRepositoryAtom = atomWithStorage<Repository>(
   "currentRepository",
-  null
+  {
+    description: "",
+    id: "-1",
+    isPrivate: true,
+    members: [],
+    name: "",
+  }
 );
