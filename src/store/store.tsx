@@ -37,3 +37,13 @@ export const currentMilestoneAtom = atomWithStorage<Milestone>(
     repositoryId: "",
   }
 );
+
+export const currentYourBranchesPageNumberAtom = atomWithStorage<number>(
+  "currentYourBranchesPageNumber",
+  1
+);
+
+export const currentAllBranchesPageNumberAtom = atomWithStorage<number>(
+  "currentAllBranchesPageNumber",
+  1
+);

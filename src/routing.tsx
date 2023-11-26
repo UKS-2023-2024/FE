@@ -15,6 +15,11 @@ import { RepositoryIssuePage } from "./modules/repository/RepositoryIssuePage";
 import { RepositoryMilestonePage } from "./modules/milestone/RepositoryMilestonePage";
 import { CreateMilestonePage } from "./modules/milestone/CreateMilestonePage";
 import { EditMilestonePage } from "./modules/milestone/EditMilestonePage";
+import { RepositoryCodePage } from "./modules/repository/RepositoryCodePage";
+import { RepositoryBranchesPage } from "./modules/repository/branches/RepositoryBranchesPage";
+import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
+import { RepositoryAllBranchesPage } from "./modules/repository/branches/RepositoryAllBranchesPage";
+import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
 
 export const routes: RouteObject[] = [
   {
@@ -74,6 +79,28 @@ export const routes: RouteObject[] = [
           {
             path: "milestones/edit",
             element: <EditMilestonePage />,
+          },
+          {
+            path: "",
+            element: <RepositoryCodePage />,
+          },
+          {
+            path: "branches",
+            element: <RepositoryBranchesPage />,
+            children: [
+              {
+                path: "",
+                element: <RepositoryOverviewBranchesPage />,
+              },
+              {
+                path: "yours",
+                element: <RepositoryYoursBranchesPage />,
+              },
+              {
+                path: "all",
+                element: <RepositoryAllBranchesPage />,
+              },
+            ],
           },
         ],
       },
