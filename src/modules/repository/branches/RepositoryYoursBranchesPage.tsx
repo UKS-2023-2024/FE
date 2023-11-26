@@ -4,9 +4,10 @@ import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branc
 import { Branch } from "../../../store/model/branch.model";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPencilAlt, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useDeleteBranch } from "../../../api/mutations/branch/useDeleteBranch";
 import { useRestoreBranch } from "../../../api/mutations/branch/useRestoreBranch";
+import { RenameBranchForm } from "./RenameBranchForm";
 
 export const RepositoryYoursBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -28,6 +29,8 @@ export const RepositoryYoursBranchesPage = () => {
   const { mutateAsync: deleteBranch } = useDeleteBranch();
   const { mutateAsync: restoreBranch } = useRestoreBranch();
   const [deletedBranches, setDeletedBranches] = useState<string[]>([]);
+  const [openRename, setOpenRename] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<Branch>();
 
   const onDeleteBranch = async (id: string) => {
     await deleteBranch(id);
@@ -40,6 +43,15 @@ export const RepositoryYoursBranchesPage = () => {
   };
 
   const isBranchDeleted = (id: string) => deletedBranches.includes(id);
+
+  const onRenameClicked = (branch: Branch) => {
+    setSelectedBranch(branch)
+    setOpenRename(true)
+  }
+
+  const fetchBranches = async () => {
+    refetch()
+  };
 
   return (
     <div className="w-full flex flex-col items-center pt-6">
@@ -56,12 +68,20 @@ export const RepositoryYoursBranchesPage = () => {
                 Restore
               </button>
             ) : (
-              <button
-                className="text-red-500 cursor-pointer"
-                onClick={() => onDeleteBranch(b.id)}
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
+              <div>
+                 <button
+                  className="text-blue-500 cursor-pointer mr-2"
+                  onClick={() => onRenameClicked(b)}
+                >
+                  <FontAwesomeIcon icon={faPencilAlt} />
+                </button>
+                <button
+                  className="text-red-500 cursor-pointer"
+                  onClick={() => onDeleteBranch(b.id)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
             )}
         </div>
         ))}
@@ -78,6 +98,7 @@ export const RepositoryYoursBranchesPage = () => {
           </div>
         )}
       </div>
+      <RenameBranchForm branch={selectedBranch} isOpen={openRename} setOpen={setOpenRename} fetchBranches={fetchBranches}/>
     </div>
   );
 };
