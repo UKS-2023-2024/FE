@@ -35,7 +35,7 @@ export const RepositoryBranchesPage = () => {
     <div className="w-full flex flex-col items-center pt-6">
       <div className="w-full flex flex-row justify-center items-center">
         <button
-          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-white ${
+          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-gray-500 ${
             isOverviewButtonClicked ? "bg-blue-500" : ""
           }`}
           onClick={handleOverviewButtonClick}
@@ -43,7 +43,7 @@ export const RepositoryBranchesPage = () => {
           Overview
         </button>
         <button
-          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-white ${
+          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-gray-500 ${
             isYoursButtonClicked ? "bg-blue-500" : ""
           }`
         }
@@ -52,7 +52,7 @@ export const RepositoryBranchesPage = () => {
           Yours
         </button>
         <button
-          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-white ${
+          className={`w-1/8 border p-3 rounded cursor-pointer text-white border-gray-500 ${
             isActiveButtonClicked ? "bg-blue-500" : ""
           }`}
           onClick={handleActiveButtonClick}
