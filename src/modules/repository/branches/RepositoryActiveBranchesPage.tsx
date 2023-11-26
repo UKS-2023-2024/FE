@@ -6,6 +6,7 @@ import { useGetActiveBranchesByRepositoryId } from "../../../api/query/branch/us
 import { useDeleteBranch } from "../../../api/mutations/branch/useDeleteBranch";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useRestoreBranch } from "../../../api/mutations/branch/useRestoreBranch";
 
 export const RepositoryActiveBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -25,9 +26,20 @@ export const RepositoryActiveBranchesPage = () => {
   const showPreviousButton = pageNumber > 1;
   const showNextButton = activeBranches?.totalItems > pageNumber * pageSize;
   const { mutateAsync: deleteBranch } = useDeleteBranch();
+  const { mutateAsync: restoreBranch } = useRestoreBranch();
+  const [deletedBranches, setDeletedBranches] = useState<string[]>([]);
+
   const onDeleteBranch = async (id: string) => {
-    await deleteBranch(id)
-  }
+    await deleteBranch(id);
+    setDeletedBranches((prevDeletedBranches) => [...prevDeletedBranches, id]);
+  };
+
+  const onRestoreBranch = async (id: string) => {
+    await restoreBranch(id)
+    setDeletedBranches((prevDeletedBranches) => prevDeletedBranches.filter((branchId) => branchId !== id));
+  };
+
+  const isBranchDeleted = (id: string) => deletedBranches.includes(id);
 
   return (
     <div className="w-full flex flex-col items-center pt-6">
@@ -36,12 +48,21 @@ export const RepositoryActiveBranchesPage = () => {
         {activeBranches?.data.map((b: Branch) => (
           <div className="flex items-center justify-between border border-gray-500 p-3" key={b.id}>
           <span>{b?.name}</span>
-          <button
-            className="text-red-500 cursor-pointer"
-            onClick={() => onDeleteBranch(b.id)} 
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </button>
+          {isBranchDeleted(b.id) ? (
+              <button
+                className="text-blue-500 cursor-pointer underline"
+                onClick={() => onRestoreBranch(b.id)}
+              >
+                Restore
+              </button>
+            ) : (
+              <button
+                className="text-red-500 cursor-pointer"
+                onClick={() => onDeleteBranch(b.id)}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+            )}
         </div>
         ))}
       </div>
