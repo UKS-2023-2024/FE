@@ -11,6 +11,11 @@ import { RepositoryPage } from "./modules/repository/RepositoryPage";
 import { RepositorySettingsPage } from "./modules/repository/RepositorySettingsPage";
 import { CreateRepositoryPage } from "./modules/repository/CreateRepositoryPage";
 import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage";
+import { RepositoryCodePage } from "./modules/repository/RepositoryCodePage";
+import { RepositoryBranchesPage } from "./modules/repository/branches/RepositoryBranchesPage";
+import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
+import { RepositoryAllBranchesPage } from "./modules/repository/branches/RepositoryAllBranchesPage";
+import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
 
 export const routes: RouteObject[] = [
   {
@@ -54,6 +59,28 @@ export const routes: RouteObject[] = [
           {
             path: "settings",
             element: <RepositorySettingsPage/>,
+          },
+          {
+            path: "",
+            element: <RepositoryCodePage/>,
+          },
+          {
+            path: "branches",
+            element: <RepositoryBranchesPage/>,
+            children: [
+              {
+                path: "",
+                element: <RepositoryOverviewBranchesPage/>,
+              },
+              {
+                path: "yours",
+                element: <RepositoryYoursBranchesPage/>,
+              },
+              {
+                path: "all",
+                element: <RepositoryAllBranchesPage/>,
+              }
+            ]
           }
         ]
       },

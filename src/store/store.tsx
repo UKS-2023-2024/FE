@@ -19,3 +19,13 @@ export const currentRepositoryAtom = atomWithStorage<Repository | null>(
   "currentRepository",
   null
 );
+
+export const currentYourBranchesPageNumberAtom = atomWithStorage<number>(
+  "currentYourBranchesPageNumber",
+  1
+);
+
+export const currentAllBranchesPageNumberAtom = atomWithStorage<number>(
+  "currentAllBranchesPageNumber",
+  1
+);
