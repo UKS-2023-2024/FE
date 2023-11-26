@@ -2,6 +2,9 @@ import { Milestone } from "../../store/model/milestone.model";
 import { Button } from "../button/Button";
 import { useDeleteMilestone } from "../../api/mutations/milestone/useDeleteMilestone";
 import { useEffect } from "react";
+import { currentMilestoneAtom } from "../../store/store";
+import { useAtom } from "jotai";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   milestone: Milestone;
@@ -9,8 +12,13 @@ interface Props {
 
 export const MilestoneOverview = ({ milestone }: Props) => {
   const { mutateAsync: deleteMilestone } = useDeleteMilestone();
+  const [, setSelectedMilestone] = useAtom(currentMilestoneAtom);
+  const navigate = useNavigate();
 
-  useEffect(() => {}, [deleteMilestone]);
+  const handleEditMilestone = () => {
+    setSelectedMilestone(milestone);
+    navigate("edit");
+  };
 
   const handleDeleteMilestone = async (milestone: Milestone) => {
     await deleteMilestone(milestone?.id ?? "");
@@ -31,7 +39,9 @@ export const MilestoneOverview = ({ milestone }: Props) => {
         >
           Delete
         </Button>
-        <Button className="w-[70px]">Edit</Button>
+        <Button className="w-[70px]" onClick={handleEditMilestone}>
+          Edit
+        </Button>
         <Button className="w-[70px]">Close</Button>
       </div>
       <div></div>

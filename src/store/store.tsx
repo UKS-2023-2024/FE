@@ -2,6 +2,7 @@ import { atomWithStorage } from "jotai/utils";
 import { User } from "./model/user.model";
 import { Organization } from "./model/organization.model";
 import { Repository } from "./model/repository.model";
+import { Milestone } from "./model/milestone.model";
 
 export const tokenAtom = atomWithStorage<string | null>("token", null);
 
@@ -23,5 +24,16 @@ export const currentRepositoryAtom = atomWithStorage<Repository>(
     isPrivate: true,
     members: [],
     name: "",
+  }
+);
+
+export const currentMilestoneAtom = atomWithStorage<Milestone>(
+  "currentMilestone",
+  {
+    id: "",
+    title: "",
+    dueDate: new Date(),
+    description: "",
+    repositoryId: "",
   }
 );

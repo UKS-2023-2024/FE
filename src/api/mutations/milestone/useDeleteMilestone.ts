@@ -1,10 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAxios } from "../../useAxios";
 import { useToast } from "../../../components/toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useDeleteMilestone = () => {
   const { axios } = useAxios();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) =>
@@ -13,6 +15,7 @@ export const useDeleteMilestone = () => {
       toast({
         title: "Milestone successfully deleted!",
       });
+      queryClient.invalidateQueries({ queryKey: ["repository-milestones"] });
     },
     onError: () => {
       toast({

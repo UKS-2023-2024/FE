@@ -3,30 +3,37 @@ import { Button } from "../../components/button/Button";
 import { Input } from "../../components/input/Input";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { CREATE_MILESTONE_VALIDATION_SCHEMA } from "../../utils/auth.constants";
-import { useCreateMilestone } from "../../api/mutations/milestone/useCreateMilestone";
 import { useAtom } from "jotai";
-import { currentRepositoryAtom } from "../../store/store";
+import { currentMilestoneAtom, currentRepositoryAtom } from "../../store/store";
+import { useEditMilestone } from "../../api/mutations/milestone/useEditMilestone";
 
-export type CreateMilestoneValues = {
+export type EditMilestoneValues = {
   title: string;
   description?: string;
   dueDate?: Date;
 };
 
-export const CreateMilestonePage = () => {
-  const { mutateAsync: createMilestone } = useCreateMilestone();
+export const EditMilestonePage = () => {
+  const { mutateAsync: editMilestone } = useEditMilestone();
   const [selectedRepository] = useAtom(currentRepositoryAtom);
+  const [selectedMilestone] = useAtom(currentMilestoneAtom);
 
   const {
     handleSubmit,
     register,
     formState: { errors },
-  } = useForm<CreateMilestoneValues>({
+  } = useForm<EditMilestoneValues>({
     resolver: yupResolver(CREATE_MILESTONE_VALIDATION_SCHEMA),
+    defaultValues: {
+      title: selectedMilestone.title,
+      description: selectedMilestone.description,
+      dueDate: selectedMilestone.dueDate,
+    },
   });
 
-  const handleOnSubmit = async (values: CreateMilestoneValues) => {
-    await createMilestone({
+  const handleOnSubmit = async (values: EditMilestoneValues) => {
+    await editMilestone({
+      id: selectedMilestone.id,
       title: values.title,
       description: values.description ?? "",
       dueDate: values.dueDate && formatDateToDateOnly(values.dueDate),
@@ -46,7 +53,7 @@ export const CreateMilestonePage = () => {
       <div className="pb-6 border-b border-gray-600">
         <p className="text-white text-2xl">New milestone</p>
         <p className="text-gray-400">
-          Create a new milestone to help organize your issues and pull requests.
+          Edit your milestone to help organize your issues and pull requests.
         </p>
       </div>
 
@@ -71,7 +78,7 @@ export const CreateMilestonePage = () => {
         <textarea className="w-[60%]" {...register("description")} />
       </div>
       <div className="flex justify-end pt-6">
-        <Button onClick={handleSubmit(handleOnSubmit)}>Create milestone</Button>
+        <Button onClick={handleSubmit(handleOnSubmit)}>Edit milestone</Button>
       </div>
     </div>
   );

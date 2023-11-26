@@ -14,6 +14,7 @@ import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage"
 import { RepositoryIssuePage } from "./modules/repository/RepositoryIssuePage";
 import { RepositoryMilestonePage } from "./modules/milestone/RepositoryMilestonePage";
 import { CreateMilestonePage } from "./modules/milestone/CreateMilestonePage";
+import { EditMilestonePage } from "./modules/milestone/EditMilestonePage";
 
 export const routes: RouteObject[] = [
   {
@@ -69,6 +70,10 @@ export const routes: RouteObject[] = [
           {
             path: "milestones/new",
             element: <CreateMilestonePage />,
+          },
+          {
+            path: "milestones/edit",
+            element: <EditMilestonePage />,
           },
         ],
       },
