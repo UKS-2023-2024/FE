@@ -37,16 +37,11 @@ export const RepositoryOverviewBranchesPage = () => {
 
   const isBranchDeleted = (id: string) => deletedBranches.includes(id);
 
-  const onRenameClicked = (branch: Branch) => {
+  const onRenameClicked = (branch: Branch | undefined) => {
     setSelectedBranch(branch)
     setOpenRename(true)
   }
 
-  const fetchBranches = async () => {
-    refetchDefault()
-    refetchActiveBranches()
-    refetchYourBranches()
-  };
   return (
     <div className="w-full flex flex-col items-center pt-6">
       <div className="w-1/2 border border-gray-500 text-white rounded">
@@ -56,6 +51,12 @@ export const RepositoryOverviewBranchesPage = () => {
             <div className="w-[72px] h-[20px] rounded-full text-xs text-center border border-white text-white ">
             Default
             </div>
+            <button
+            className="text-blue-500 cursor-pointer mr-2"
+            onClick={() => onRenameClicked(branch)}
+            >
+            <FontAwesomeIcon icon={faPencilAlt} />
+          </button>
         </div>
       </div>
 
@@ -139,7 +140,7 @@ export const RepositoryOverviewBranchesPage = () => {
         )
         }
       </div>
-      <RenameBranchForm branch={selectedBranch} isOpen={openRename} setOpen={setOpenRename} fetchBranches={fetchBranches}/>
+      <RenameBranchForm branch={selectedBranch} isOpen={openRename} setOpen={setOpenRename}/>
     </div>
   );
 };

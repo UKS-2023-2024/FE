@@ -3,6 +3,7 @@ import { currentRepositoryAtom } from "../../../store/store";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "../../../components/button/Button";
+import { CreateBranchForm } from "./CreateBranchForm";
 
 export const RepositoryBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -10,6 +11,7 @@ export const RepositoryBranchesPage = () => {
   const [isOverviewButtonClicked, setIsOverviewButtonClicked] = useState(false);
   const [isYoursButtonClicked, setIsYoursButtonClicked] = useState(false);
   const [isActiveButtonClicked, setIsActiveButtonClicked] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
 
 
   const handleOverviewButtonClick = () => {
@@ -61,11 +63,13 @@ export const RepositoryBranchesPage = () => {
         </button>
         <Button
           className="w-1/8 ml-5"
+          onClick={() => setOpenCreate(true)}
         >
           New branch
         </Button>
       </div>
       <Outlet></Outlet>
+      <CreateBranchForm isOpen={openCreate} setOpen={setOpenCreate}/>
     </div>
   );
 };

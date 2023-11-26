@@ -3,65 +3,51 @@ import { Modal } from "flowbite-react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Button } from "../../../components/button/Button";
 import { Input } from "../../../components/input/Input";
-import { RENAME_BRANCH_DEFAULT_VALUES, RENAME_BRANCH_VALIDATION_SCHEMA } from "../../../utils/branch.constants";
-import { useUpdateBranch } from "../../../api/mutations/branch/useUpdateBranch";
-import { Branch } from "../../../store/model/branch.model";
-import { useEffect } from "react";
+import { CREATE_BRANCH_DEFAULT_VALUES, CREATE_BRANCH_VALIDATION_SCHEMA } from "../../../utils/branch.constants";
+import { useCreateBranch } from "../../../api/mutations/branch/useCreateBranch";
+import { useAtom } from "jotai";
+import { currentActiveBranchesPageNumberAtom, currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../store/store";
 import { useGetActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetActiveBranchesByRepositoryId";
 import { useGetDefaultBranchByRepositoryId } from "../../../api/query/branch/useGetDefaultBranchByRepositoryId";
 import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetUserActiveBranchesByRepositoryId";
-import { useAtom } from "jotai";
-import { currentActiveBranchesPageNumberAtom, currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../store/store";
 
-export type RenameBranchFormValues = {
-  id: string;
+export type CreateBranchFormValues = {
   name: string;
 };
 
 interface Props {
   isOpen: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  branch: Branch | undefined;
 }
 
-export const RenameBranchForm = ({ isOpen, setOpen, branch }: Props) => {
-  const { mutateAsync: updateBranch } = useUpdateBranch();
+export const CreateBranchForm = ({ isOpen, setOpen}: Props) => {
+  const { mutateAsync: createBranch } = useCreateBranch();
   const {
     handleSubmit,
     reset,
     register,
     formState: { errors },
-  } = useForm<RenameBranchFormValues>({
-    defaultValues: RENAME_BRANCH_DEFAULT_VALUES,
-    resolver: yupResolver(RENAME_BRANCH_VALIDATION_SCHEMA) as Resolver<RenameBranchFormValues>,
+  } = useForm<CreateBranchFormValues>({
+    defaultValues: CREATE_BRANCH_DEFAULT_VALUES,
+    resolver: yupResolver(CREATE_BRANCH_VALIDATION_SCHEMA) as Resolver<CreateBranchFormValues>,
   });
 
   const [repository] = useAtom(currentRepositoryAtom);
   const [, setYourBranchesPageNumber] = useAtom(currentYourBranchesPageNumberAtom);
   const [, setActiveBranchesPageNumber] = useAtom(currentActiveBranchesPageNumberAtom);
-  const { refetch: refetchDefault} = useGetDefaultBranchByRepositoryId(repository?.id ?? "");
   const { refetch: refetchYourBranches} = useGetUserActiveBranchesByRepositoryId(repository?.id ?? "", 1);
   const { refetch: refetchActiveBranches} = useGetActiveBranchesByRepositoryId(repository?.id ?? "", 1);
-  
-  const handleOnSubmit = async (values: RenameBranchFormValues) => {
-    await updateBranch(values);
-    refetchDefault()
-    refetchActiveBranches()
-    refetchYourBranches()
-    setYourBranchesPageNumber(1)
-    setActiveBranchesPageNumber(1)
+
+  const handleOnSubmit = async (values: CreateBranchFormValues) => {
+    await createBranch({name: values.name, repositoryId: repository?.id ?? ""});
     reset();
     setOpen(false);
+    refetchActiveBranches()
+    refetchYourBranches()
+    setActiveBranchesPageNumber(1)
+    setYourBranchesPageNumber(1)
   };
 
-  useEffect(() => {
-    if (branch) {
-      reset({
-        id: branch.id,
-        name: branch.name,
-      });
-    }
-  }, [branch, reset]);
 
   return (
     <Modal
@@ -71,7 +57,7 @@ export const RenameBranchForm = ({ isOpen, setOpen, branch }: Props) => {
         setOpen(false);
       }}
     >
-      <Modal.Header className="bg-[#11151C]"><div className="text-white">Rename this branch</div></Modal.Header>
+      <Modal.Header className="bg-[#11151C]"><div className="text-white">Create a branch</div></Modal.Header>
       <Modal.Body className="bg-[#11151C]">
         <div className="flex flex-col align-middle mb-4">
           <div className=" w-2/3 mx-auto">
@@ -85,7 +71,7 @@ export const RenameBranchForm = ({ isOpen, setOpen, branch }: Props) => {
                 errorMessage={errors.name?.message}
               />
               <Button className="w-full mt-4" type="submit" value="Submit">
-                Rename
+                Create new branch
               </Button>
             </form>
           </div>

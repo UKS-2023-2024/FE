@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { currentRepositoryAtom } from "../../../store/store";
+import { currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../store/store";
 import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetUserActiveBranchesByRepositoryId";
 import { Branch } from "../../../store/model/branch.model";
 import { useState } from "react";
@@ -11,7 +11,7 @@ import { RenameBranchForm } from "./RenameBranchForm";
 
 export const RepositoryYoursBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
-  const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useAtom(currentYourBranchesPageNumberAtom);
   const pageSize = 10; 
 
   const { data: yourBranches, refetch } = useGetUserActiveBranchesByRepositoryId(repository?.id ?? "", pageNumber);
