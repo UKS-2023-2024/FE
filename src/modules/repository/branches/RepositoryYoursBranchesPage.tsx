@@ -1,20 +1,20 @@
 import { useAtom } from "jotai";
 import { currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../store/store";
-import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetUserActiveBranchesByRepositoryId";
+import { useGetUserBranchesWithoutDefaultByRepositoryId } from "../../../api/query/branch/useGetUserBranchesWithoutDefaultByRepositoryId";
 import { Branch } from "../../../store/model/branch.model";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useDeleteBranch } from "../../../api/mutations/branch/useDeleteBranch";
 import { useRestoreBranch } from "../../../api/mutations/branch/useRestoreBranch";
-import { RenameBranchForm } from "./RenameBranchForm";
+import { RenameBranchForm } from "./modals/RenameBranchForm";
 
 export const RepositoryYoursBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
   const [pageNumber, setPageNumber] = useAtom(currentYourBranchesPageNumberAtom);
   const pageSize = 10; 
 
-  const { data: yourBranches, refetch } = useGetUserActiveBranchesByRepositoryId(repository?.id ?? "", pageNumber);
+  const { data: yourBranches, refetch } = useGetUserBranchesWithoutDefaultByRepositoryId(repository?.id ?? "", pageNumber);
 
   const handlePageChange = async (newPageNumber: number) => {
     await new Promise<void>((resolve) => {
@@ -98,7 +98,7 @@ export const RepositoryYoursBranchesPage = () => {
           </div>
         )}
       </div>
-      <RenameBranchForm branch={selectedBranch} isOpen={openRename} setOpen={setOpenRename} fetchBranches={fetchBranches}/>
+      <RenameBranchForm branch={selectedBranch} isOpen={openRename} setOpen={setOpenRename}/>
     </div>
   );
 };

@@ -2,11 +2,11 @@ import { Branch } from "../../../store/model/branch.model";
 import { useQuery } from "@tanstack/react-query";
 import { useAxios } from "../../useAxios";
 
-export const useGetNotDeletedBranchesByRepositoryId = (repositoryId: string) => {
+export const useGetAllBranchesWithoutDefaultByRepositoryId = (repositoryId: string) => {
   const { axios } = useAxios();
   return useQuery<Branch[]>({
     initialData: [],
-    queryKey: ["not-deleted-branches"],
-    queryFn: () => axios.get(`/branches/not-deleted/${repositoryId}`).then((res) => res.data),
+    queryKey: ["all-branches-without-default"],
+    queryFn: () => axios.get(`/branches/without-default/${repositoryId}`).then((res) => res.data),
   });
 };

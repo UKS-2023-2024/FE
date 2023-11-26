@@ -3,14 +3,14 @@ import { currentRepositoryAtom } from "../../../store/store";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "../../../components/button/Button";
-import { CreateBranchForm } from "./CreateBranchForm";
+import { CreateBranchForm } from "./modals/CreateBranchForm";
 
 export const RepositoryBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
   const navigate = useNavigate();
   const [isOverviewButtonClicked, setIsOverviewButtonClicked] = useState(false);
   const [isYoursButtonClicked, setIsYoursButtonClicked] = useState(false);
-  const [isActiveButtonClicked, setIsActiveButtonClicked] = useState(false);
+  const [isAllButtonClicked, setIsAllButtonClicked] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
 
 
@@ -18,17 +18,17 @@ export const RepositoryBranchesPage = () => {
     navigate(`/repository/${repository?.name}/branches`);
     setIsOverviewButtonClicked(true);
     setIsYoursButtonClicked(false)
-    setIsActiveButtonClicked(false)
+    setIsAllButtonClicked(false)
   };
   const handleYoursButtonClick = () => {
     navigate(`/repository/${repository?.name}/branches/yours`);
     setIsYoursButtonClicked(true);
     setIsOverviewButtonClicked(false)
-    setIsActiveButtonClicked(false)
+    setIsAllButtonClicked(false)
   };
-  const handleActiveButtonClick = () => {
-    navigate(`/repository/${repository?.name}/branches/active`);
-    setIsActiveButtonClicked(true)
+  const handleAllButtonClick = () => {
+    navigate(`/repository/${repository?.name}/branches/all`);
+    setIsAllButtonClicked(true)
     setIsOverviewButtonClicked(false)
     setIsYoursButtonClicked(false)
   };
@@ -55,11 +55,11 @@ export const RepositoryBranchesPage = () => {
         </button>
         <button
           className={`w-1/8 border p-3 rounded cursor-pointer text-white border-gray-500 ${
-            isActiveButtonClicked ? "bg-blue-500" : ""
+            isAllButtonClicked ? "bg-blue-500" : ""
           }`}
-          onClick={handleActiveButtonClick}
+          onClick={handleAllButtonClick}
         >
-          Active
+          All branches
         </button>
         <Button
           className="w-1/8 ml-5"

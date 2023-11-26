@@ -25,7 +25,7 @@ export const currentYourBranchesPageNumberAtom = atomWithStorage<number>(
   1
 );
 
-export const currentActiveBranchesPageNumberAtom = atomWithStorage<number>(
-  "currentActiveBranchesPageNumber",
+export const currentAllBranchesPageNumberAtom = atomWithStorage<number>(
+  "currentAllBranchesPageNumber",
   1
 );

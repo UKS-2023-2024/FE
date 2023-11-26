@@ -1,23 +1,23 @@
 import { useAtom } from "jotai";
 import { useGetDefaultBranchByRepositoryId } from "../../../api/query/branch/useGetDefaultBranchByRepositoryId";
 import { currentRepositoryAtom } from "../../../store/store";
-import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetUserActiveBranchesByRepositoryId";
+import { useGetUserBranchesWithoutDefaultByRepositoryId } from "../../../api/query/branch/useGetUserBranchesWithoutDefaultByRepositoryId";
 import { Branch } from "../../../store/model/branch.model";
-import { useGetActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetActiveBranchesByRepositoryId";
+import { useGetAllBranchesWithoutDefaultByRepositoryIdPagination } from "../../../api/query/branch/useGetAllBranchesWithoutDefaultByRepositoryIdPagination";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from "react-router-dom";
 import { useDeleteBranch } from "../../../api/mutations/branch/useDeleteBranch";
 import { useState } from "react";
 import { useRestoreBranch } from "../../../api/mutations/branch/useRestoreBranch";
-import { RenameBranchForm } from "./RenameBranchForm";
+import { RenameBranchForm } from "./modals/RenameBranchForm";
 
 
 export const RepositoryOverviewBranchesPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
-  const { data: branch, refetch: refetchDefault} = useGetDefaultBranchByRepositoryId(repository?.id ?? "");
-  const { data: yourBranches, refetch: refetchYourBranches} = useGetUserActiveBranchesByRepositoryId(repository?.id ?? "", 1);
-  const { data: activeBranches, refetch: refetchActiveBranches} = useGetActiveBranchesByRepositoryId(repository?.id ?? "", 1);
+  const { data: branch} = useGetDefaultBranchByRepositoryId(repository?.id ?? "");
+  const { data: yourBranches} = useGetUserBranchesWithoutDefaultByRepositoryId(repository?.id ?? "", 1);
+  const { data: allBranches} = useGetAllBranchesWithoutDefaultByRepositoryIdPagination(repository?.id ?? "", 1);
   const navigate = useNavigate();
   const { mutateAsync: deleteBranch } = useDeleteBranch();
   const { mutateAsync: restoreBranch } = useRestoreBranch();
@@ -101,8 +101,8 @@ export const RepositoryOverviewBranchesPage = () => {
       </div>
 
       <div className="w-1/2 border border-gray-500 text-white rounded mt-5">
-        <div className="p-2">Active branches</div>
-        { activeBranches?.data.slice(0, 5).map((b: Branch) => (
+        <div className="p-2">All branches</div>
+        { allBranches?.data.slice(0, 5).map((b: Branch) => (
           <div className="flex items-center justify-between border border-gray-500 p-3" key={b.id}>
           <span>{b?.name}</span>
           {isBranchDeleted(b.id) ? (
@@ -130,12 +130,12 @@ export const RepositoryOverviewBranchesPage = () => {
             )}
         </div>
         ))}
-         {  activeBranches?.totalItems > 5 && (
+         {  allBranches?.totalItems > 5 && (
             <div 
               className="text-center py-1 px-3 text-blue-500 cursor-pointer underline"
-              onClick={() => navigate(`/repository/${repository?.name}/branches/active`)}
+              onClick={() => navigate(`/repository/${repository?.name}/branches/all`)}
             >
-                View all active branches
+                View all branches
             </div>
         )
         }

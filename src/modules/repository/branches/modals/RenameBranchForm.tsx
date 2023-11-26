@@ -1,17 +1,17 @@
 import { Resolver, useForm } from "react-hook-form";
 import { Modal } from "flowbite-react";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Button } from "../../../components/button/Button";
-import { Input } from "../../../components/input/Input";
-import { RENAME_BRANCH_DEFAULT_VALUES, RENAME_BRANCH_VALIDATION_SCHEMA } from "../../../utils/branch.constants";
-import { useUpdateBranch } from "../../../api/mutations/branch/useUpdateBranch";
-import { Branch } from "../../../store/model/branch.model";
+import { Button } from "../../../../components/button/Button";
+import { Input } from "../../../../components/input/Input";
+import { RENAME_BRANCH_DEFAULT_VALUES, RENAME_BRANCH_VALIDATION_SCHEMA } from "../../../../utils/branch.constants";
+import { useUpdateBranch } from "../../../../api/mutations/branch/useUpdateBranch";
+import { Branch } from "../../../../store/model/branch.model";
 import { useEffect } from "react";
-import { useGetActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetActiveBranchesByRepositoryId";
-import { useGetDefaultBranchByRepositoryId } from "../../../api/query/branch/useGetDefaultBranchByRepositoryId";
-import { useGetUserActiveBranchesByRepositoryId } from "../../../api/query/branch/useGetUserActiveBranchesByRepositoryId";
+import { useGetAllBranchesWithoutDefaultByRepositoryIdPagination } from "../../../../api/query/branch/useGetAllBranchesWithoutDefaultByRepositoryIdPagination";
+import { useGetDefaultBranchByRepositoryId } from "../../../../api/query/branch/useGetDefaultBranchByRepositoryId";
+import { useGetUserBranchesWithoutDefaultByRepositoryId } from "../../../../api/query/branch/useGetUserBranchesWithoutDefaultByRepositoryId";
 import { useAtom } from "jotai";
-import { currentActiveBranchesPageNumberAtom, currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../store/store";
+import { currentAllBranchesPageNumberAtom, currentRepositoryAtom, currentYourBranchesPageNumberAtom } from "../../../../store/store";
 
 export type RenameBranchFormValues = {
   id: string;
@@ -38,10 +38,10 @@ export const RenameBranchForm = ({ isOpen, setOpen, branch }: Props) => {
 
   const [repository] = useAtom(currentRepositoryAtom);
   const [, setYourBranchesPageNumber] = useAtom(currentYourBranchesPageNumberAtom);
-  const [, setActiveBranchesPageNumber] = useAtom(currentActiveBranchesPageNumberAtom);
+  const [, setAllBranchesPageNumber] = useAtom(currentAllBranchesPageNumberAtom);
   const { refetch: refetchDefault} = useGetDefaultBranchByRepositoryId(repository?.id ?? "");
-  const { refetch: refetchYourBranches} = useGetUserActiveBranchesByRepositoryId(repository?.id ?? "", 1);
-  const { refetch: refetchActiveBranches} = useGetActiveBranchesByRepositoryId(repository?.id ?? "", 1);
+  const { refetch: refetchYourBranches} = useGetUserBranchesWithoutDefaultByRepositoryId(repository?.id ?? "", 1);
+  const { refetch: refetchActiveBranches} = useGetAllBranchesWithoutDefaultByRepositoryIdPagination(repository?.id ?? "", 1);
   
   const handleOnSubmit = async (values: RenameBranchFormValues) => {
     await updateBranch(values);
@@ -49,7 +49,7 @@ export const RenameBranchForm = ({ isOpen, setOpen, branch }: Props) => {
     refetchActiveBranches()
     refetchYourBranches()
     setYourBranchesPageNumber(1)
-    setActiveBranchesPageNumber(1)
+    setAllBranchesPageNumber(1)
     reset();
     setOpen(false);
   };

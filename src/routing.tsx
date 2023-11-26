@@ -14,7 +14,7 @@ import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage"
 import { RepositoryCodePage } from "./modules/repository/RepositoryCodePage";
 import { RepositoryBranchesPage } from "./modules/repository/branches/RepositoryBranchesPage";
 import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
-import { RepositoryActiveBranchesPage } from "./modules/repository/branches/RepositoryActiveBranchesPage";
+import { RepositoryAllBranchesPage } from "./modules/repository/branches/RepositoryAllBranchesPage";
 import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
 
 export const routes: RouteObject[] = [
@@ -77,8 +77,8 @@ export const routes: RouteObject[] = [
                 element: <RepositoryYoursBranchesPage/>,
               },
               {
-                path: "active",
-                element: <RepositoryActiveBranchesPage/>,
+                path: "all",
+                element: <RepositoryAllBranchesPage/>,
               }
             ]
           }

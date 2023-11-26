@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useAxios } from "../../useAxios";
 import { PagedResult } from "../../../store/model/pagedResult.model";
 
-export const useGetActiveBranchesByRepositoryId = (repositoryId: string, pageNumber: number) => {
+export const useGetAllBranchesWithoutDefaultByRepositoryIdPagination = (repositoryId: string, pageNumber: number) => {
   const { axios } = useAxios();
   return useQuery<PagedResult<Branch>>({
     initialData: {data: [], totalItems: 0},
-    queryKey: ["active-branches"],
-    queryFn: () => axios.get(`/branches/active/${repositoryId}/10/${pageNumber}`).then((res) => res.data),
+    queryKey: ["all-branches-without-default-pagination"],
+    queryFn: () => axios.get(`/branches/without-default/${repositoryId}/10/${pageNumber}`).then((res) => res.data),
   });
 };
