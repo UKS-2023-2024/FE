@@ -54,7 +54,7 @@ export const RepositoryCodePage = () => {
 
           {showDropdown && (
             <div className="absolute mt-1 w-1/4 bg-gray-900 border border-gray-300 dark:border-gray-600 rounded text-sm">
-              {branches.slice(0, 5).map((branch) => (
+              {branches.map((branch) => (
                 <div
                   key={branch.name}
                   className="py-1 px-3 text-white hover:bg-gray-700 cursor-pointer"

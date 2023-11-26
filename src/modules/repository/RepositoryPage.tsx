@@ -9,7 +9,7 @@ export const RepositoryPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full h-full bg-[#11151C]">
+    <div className="w-full min-h-screen bg-[#11151C]">
       <div className="text-white ml-5">
         { repository?.organization != null ?  (
         <button className="hover-cursor mr-4" onClick={() => navigate(`/organizations/${repository?.organization.name}`)}>
