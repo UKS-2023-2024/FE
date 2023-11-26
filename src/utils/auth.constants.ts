@@ -14,3 +14,9 @@ export const LOGIN_DEFAULT_VALUES = {
   email: "",
   password: "",
 };
+
+export const CREATE_MILESTONE_VALIDATION_SCHEMA = yup.object({
+  title: yup.string().required(),
+  dueDate: yup.date().optional(),
+  description: yup.string().optional(),
+});
