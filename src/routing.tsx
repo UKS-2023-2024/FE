@@ -16,6 +16,8 @@ import { RepositoryBranchesPage } from "./modules/repository/branches/Repository
 import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
 import { RepositoryAllBranchesPage } from "./modules/repository/branches/RepositoryAllBranchesPage";
 import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
+import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
+import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
 
 export const routes: RouteObject[] = [
   {
@@ -48,50 +50,58 @@ export const routes: RouteObject[] = [
           },
           {
             path: "repositories",
-            element: <OrganizationRepositoriesPage/>,
-          }
+            element: <OrganizationRepositoriesPage />,
+          },
         ],
       },
       {
         path: "/repository/:name",
-        element: <RepositoryPage/>,
+        element: <RepositoryPage />,
         children: [
           {
             path: "settings",
-            element: <RepositorySettingsPage/>,
+            element: <RepositorySettingsPage />,
           },
           {
             path: "",
-            element: <RepositoryCodePage/>,
+            element: <RepositoryCodePage />,
           },
           {
             path: "branches",
-            element: <RepositoryBranchesPage/>,
+            element: <RepositoryBranchesPage />,
             children: [
               {
                 path: "",
-                element: <RepositoryOverviewBranchesPage/>,
+                element: <RepositoryOverviewBranchesPage />,
               },
               {
                 path: "yours",
-                element: <RepositoryYoursBranchesPage/>,
+                element: <RepositoryYoursBranchesPage />,
               },
               {
                 path: "all",
-                element: <RepositoryAllBranchesPage/>,
-              }
-            ]
-          }
-        ]
+                element: <RepositoryAllBranchesPage />,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: "members",
+        element: <RepositoryMembersPage />,
       },
       {
         path: "/new-repository",
-        element: <CreateRepositoryPage/>,
+        element: <CreateRepositoryPage />,
       },
       {
         path: "/repositories",
-        element: <UserRepositoriesPage/>,
-      }
+        element: <UserRepositoriesPage />,
+      },
+      {
+        path: "/repository/invites/:token",
+        element: <RepositoryInviteAcceptPage />,
+      },
     ],
   },
 ];
