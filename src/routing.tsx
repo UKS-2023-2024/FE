@@ -67,6 +67,10 @@ export const routes: RouteObject[] = [
             element: <RepositoryCodePage />,
           },
           {
+            path: "members",
+            element: <RepositoryMembersPage />,
+          },
+          {
             path: "branches",
             element: <RepositoryBranchesPage />,
             children: [
@@ -85,10 +89,6 @@ export const routes: RouteObject[] = [
             ],
           },
         ],
-      },
-      {
-        path: "members",
-        element: <RepositoryMembersPage />,
       },
       {
         path: "/new-repository",
