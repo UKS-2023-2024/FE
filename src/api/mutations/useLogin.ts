@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useAtom } from "jotai";
-import { LoginFormValues } from "../../components/auth/LoginForm";
+import { LoginFormValues } from "../../modules/auth/forms/LoginForm";
 import { useToast } from "../../components/toast";
 import { tokenAtom } from "../../store/store";
 import { useAxios } from "../useAxios";

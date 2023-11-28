@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LoginForm } from "../auth/LoginForm";
+import { LoginForm } from "../../modules/auth/forms/LoginForm";
 import { Button } from "../button/Button";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
@@ -20,36 +20,37 @@ export const Menu = () => {
     navigate("/profile");
   };
 
+  const handleHomeClick = () => {
+    navigate("/home");
+  };
+
   const logout = () => {
+    navigate("/");
     setToken(null);
     setCurrentUser(null);
   };
 
   return (
-    <div className="flex justify-end h-[5%] bg-black border-b-[1px]  border-gray-600">
-      \
+    <div className="flex justify-between bg-black border-b-[1px]  border-gray-600 py-2 px-4">
+      <div className="text-white">
+        {token != null && (
+          <Button onClick={handleHomeClick} className="w-20 bg-transparent text-white">
+            Home
+          </Button>
+        )}
+      </div>
       {token == null ? (
         <div>
-          {" "}
-          <Button
-            onClick={handleRegisterClick}
-            className="w-20 bg-transparent text-white"
-          >
+          <Button onClick={handleRegisterClick} className="w-20 bg-transparent text-white">
             Register
           </Button>
-          <Button
-            onClick={() => setOpenLogin(true)}
-            className="w-20 bg-transparent text-white"
-          >
+          <Button onClick={() => setOpenLogin(true)} className="w-20 bg-transparent text-white">
             Login
           </Button>
         </div>
       ) : (
         <div>
-          <Button
-            onClick={handleUserProfileClick}
-            className="bg-transparent text-white"
-          >
+          <Button onClick={handleUserProfileClick} className="bg-transparent text-white">
             {currentUser?.fullName}
           </Button>
           <Button onClick={logout} className="w-20 bg-transparent text-white">

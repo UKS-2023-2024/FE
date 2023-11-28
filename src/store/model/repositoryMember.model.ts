@@ -1,7 +1,19 @@
 import { User } from "./user.model";
 
 export type RepositoryMember = {
-    id: string;
-    member: User;
-    role: number;
+  id: string;
+  member: User;
+  role: number;
 };
+
+export type RepositoryMemberPresenter = {
+  id: string;
+  username: string;
+  role: RepositoryMemberRole;
+};
+
+export enum RepositoryMemberRole {
+  OWNER,
+  ADMIN,
+  CONTRIBUTOR
+}
