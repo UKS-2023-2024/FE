@@ -31,6 +31,12 @@ export const RepositoryMembersPage = () => {
       repositoryId: repository?.id ?? "",
       repositoryMemberId: repositoryMemberId,
     });
+    if (!isErrorDelete) {
+      const indexToRemove = repositoryMembers.findIndex((mem) => mem.id === repositoryMemberId);
+      if (indexToRemove !== -1) {
+        repositoryMembers.splice(indexToRemove, 1);
+      }
+    }
   };
   const handleRoleChange = async (repositoryMemberId: string, role: RepositoryMemberRole) => {
     await changeRepositoryMemberRole({
@@ -113,14 +119,6 @@ export const RepositoryMembersPage = () => {
                     )}
                     onClick={() => {
                       handleRemove(member.id);
-                      if (!isErrorDelete) {
-                        const indexToRemove = repositoryMembers.findIndex(
-                          (mem) => mem.id === member.id
-                        );
-                        if (indexToRemove !== -1) {
-                          repositoryMembers.splice(indexToRemove, 1);
-                        }
-                      }
                     }}
                     disabled
                   >
