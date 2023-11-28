@@ -11,6 +11,10 @@ import { RepositoryPage } from "./modules/repository/RepositoryPage";
 import { RepositorySettingsPage } from "./modules/repository/RepositorySettingsPage";
 import { CreateRepositoryPage } from "./modules/repository/CreateRepositoryPage";
 import { UserRepositoriesPage } from "./modules/repository/UserRepositoriesPage";
+import { RepositoryIssuePage } from "./modules/repository/RepositoryIssuePage";
+import { RepositoryMilestonePage } from "./modules/milestone/RepositoryMilestonePage";
+import { CreateMilestonePage } from "./modules/milestone/CreateMilestonePage";
+import { EditMilestonePage } from "./modules/milestone/EditMilestonePage";
 import { RepositoryCodePage } from "./modules/repository/RepositoryCodePage";
 import { RepositoryBranchesPage } from "./modules/repository/branches/RepositoryBranchesPage";
 import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
@@ -63,6 +67,22 @@ export const routes: RouteObject[] = [
             element: <RepositorySettingsPage />,
           },
           {
+            path: "issues",
+            element: <RepositoryIssuePage />,
+          },
+          {
+            path: "milestones",
+            element: <RepositoryMilestonePage />,
+          },
+          {
+            path: "milestones/new",
+            element: <CreateMilestonePage />,
+          },
+          {
+            path: "milestones/edit",
+            element: <EditMilestonePage />,
+          },
+          {
             path: "",
             element: <RepositoryCodePage />,
           },
@@ -90,6 +110,7 @@ export const routes: RouteObject[] = [
           },
         ],
       },
+
       {
         path: "/new-repository",
         element: <CreateRepositoryPage />,

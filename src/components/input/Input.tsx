@@ -5,17 +5,19 @@ import React from "react";
 import { FieldError } from "react-hook-form";
 
 interface InputProps extends HTMLProps<HTMLInputElement> {
+  label?: string;
   hasError?: FieldError | undefined;
   errorMessage?: string | undefined;
 }
 
 export const Input = React.forwardRef(
   (
-    { hasError, errorMessage, className = "", ...props }: InputProps,
+    { label, hasError, errorMessage, className = "", ...props }: InputProps,
     ref: React.LegacyRef<HTMLInputElement>
   ) => {
     return (
       <>
+        <span className="text-white">{label}</span>
         <input
           {...props}
           ref={ref}

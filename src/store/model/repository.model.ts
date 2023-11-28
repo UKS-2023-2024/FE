@@ -6,6 +6,6 @@ export type Repository = {
   name: string;
   description: string;
   isPrivate: boolean;
-  organization: Organization;
-  members: RepositoryMember[]
+  organization?: Organization;
+  members: RepositoryMember[];
 };
