@@ -20,6 +20,8 @@ import { RepositoryBranchesPage } from "./modules/repository/branches/Repository
 import { RepositoryYoursBranchesPage } from "./modules/repository/branches/RepositoryYoursBranchesPage";
 import { RepositoryAllBranchesPage } from "./modules/repository/branches/RepositoryAllBranchesPage";
 import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
+import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
+import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
 
 export const routes: RouteObject[] = [
   {
@@ -85,6 +87,10 @@ export const routes: RouteObject[] = [
             element: <RepositoryCodePage />,
           },
           {
+            path: "members",
+            element: <RepositoryMembersPage />,
+          },
+          {
             path: "branches",
             element: <RepositoryBranchesPage />,
             children: [
@@ -112,6 +118,10 @@ export const routes: RouteObject[] = [
       {
         path: "/repositories",
         element: <UserRepositoriesPage />,
+      },
+      {
+        path: "/repository/invites/:token",
+        element: <RepositoryInviteAcceptPage />,
       },
     ],
   },

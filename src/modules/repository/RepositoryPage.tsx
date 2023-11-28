@@ -48,6 +48,9 @@ export const RepositoryPage = () => {
           <Tab onClick={() => navigate(`/repository/${name}/settings`)}>
             Settings
           </Tab>
+          <Tab onClick={() => navigate(`/repository/${name}/members`)}>
+            Members
+          </Tab>
         </ul>
       </div>
       <Outlet />

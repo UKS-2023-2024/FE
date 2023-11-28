@@ -33,7 +33,7 @@ export const useAxios = () => {
       function (error) {
         if (error.response?.status === 401) {
           logout();
-          navigate("/login");
+          navigate("/");
         }
         return Promise.reject(error);
       }
