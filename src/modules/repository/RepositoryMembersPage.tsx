@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Button } from "../../components/button/Button";
 import { AddRepositoryMemberForm } from "./forms/AddRepositoryMemberForm";
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
@@ -12,20 +12,37 @@ import { cn } from "../../utils/cn";
 import githubPerson from "./../../../public/githubPerson.png";
 import { useGetRepositoryMemberRole } from "../../api/query/repository-member/useGetRepositoryMemberRole";
 import { useRemoveRepositoryMember } from "../../api/mutations/repository-member/useRemoveRepositoryMember";
+import { useChangeRepositoryMemberRole } from "../../api/mutations/repository-member/useChangeRepositoryMemberRole";
 
 export const RepositoryMembersPage = () => {
   const [openForm, setOpenForm] = useState(false);
   const [repository] = useAtom(currentRepositoryAtom);
   const { data: repositoryMembers } = useGetRepositoryMembers(repository?.id ?? "");
   const { data: userRole } = useGetRepositoryMemberRole(repository?.id ?? "");
-  const { mutateAsync: removeRepositoryMember } = useRemoveRepositoryMember();
+  const { mutateAsync: removeRepositoryMember, isError: isErrorDelete } =
+    useRemoveRepositoryMember();
+  const { mutateAsync: changeRepositoryMemberRole, isError: isErrorChange } =
+    useChangeRepositoryMemberRole();
   const hasPrivileges =
     userRole == RepositoryMemberRole.ADMIN || userRole == RepositoryMemberRole.OWNER;
 
-  const handleRemove = (repositoryMemberId: string) => {
-    removeRepositoryMember({
+  const handleRemove = async (repositoryMemberId: string) => {
+    await removeRepositoryMember({
       repositoryId: repository?.id ?? "",
       repositoryMemberId: repositoryMemberId,
+    });
+    if (!isErrorDelete) {
+      const indexToRemove = repositoryMembers.findIndex((mem) => mem.id === repositoryMemberId);
+      if (indexToRemove !== -1) {
+        repositoryMembers.splice(indexToRemove, 1);
+      }
+    }
+  };
+  const handleRoleChange = async (repositoryMemberId: string, role: RepositoryMemberRole) => {
+    await changeRepositoryMemberRole({
+      repositoryId: repository?.id ?? "",
+      repositoryMemberId: repositoryMemberId,
+      repositoryRole: role,
     });
   };
   return (
@@ -58,13 +75,17 @@ export const RepositoryMembersPage = () => {
                     className="text-[#232323] rounded-md"
                     defaultValue={member.role}
                     disabled={!hasPrivileges}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                      const role = e.target.value;
+                      handleRoleChange(member.id, +role);
+                      if (!isErrorChange) member.role = +role;
+                    }}
                   >
                     <option
                       value={RepositoryMemberRole.ADMIN}
                       className={
                         member.role == RepositoryMemberRole.ADMIN ? "bg-[#0E7490] text-white" : ""
                       }
-                      onClick={() => console.log("yoyu")}
                     >
                       Admin
                     </option>
@@ -73,7 +94,6 @@ export const RepositoryMembersPage = () => {
                       className={
                         member.role == RepositoryMemberRole.OWNER ? "bg-[#0E7490] text-white " : ""
                       }
-                      onClick={() => console.log("yoyu")}
                     >
                       Owner
                     </option>
@@ -84,7 +104,6 @@ export const RepositoryMembersPage = () => {
                           ? "bg-[#0E7490] text-white"
                           : ""
                       }
-                      onClick={() => console.log("yoyu")}
                     >
                       Contributor
                     </option>
@@ -98,7 +117,9 @@ export const RepositoryMembersPage = () => {
                         ? "bg-red-500 hover:bg-red-400"
                         : "bg-gray-500 hover:bg-gray-500 cursor-default"
                     )}
-                    onClick={() => handleRemove(member.id)}
+                    onClick={() => {
+                      handleRemove(member.id);
+                    }}
                     disabled
                   >
                     Remove

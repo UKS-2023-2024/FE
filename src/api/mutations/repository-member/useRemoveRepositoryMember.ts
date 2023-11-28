@@ -2,12 +2,10 @@ import { useToast } from "../../../components/toast";
 import { RemoveRepositoryMemberParams } from "../../../modules/repository/model/RemoveRepositoryMemberParams";
 import { useAxios } from "../../useAxios";
 import { useMutation } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
 
 export const useRemoveRepositoryMember = () => {
   const { axios } = useAxios();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: RemoveRepositoryMemberParams) =>
@@ -16,7 +14,6 @@ export const useRemoveRepositoryMember = () => {
       toast({
         title: "Member removed!",
       });
-      queryClient.invalidateQueries({ queryKey: ["repository-members"] });
     },
     onError: (e: any) => {
       toast({
