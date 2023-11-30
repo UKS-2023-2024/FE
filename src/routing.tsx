@@ -22,6 +22,7 @@ import { RepositoryAllBranchesPage } from "./modules/repository/branches/Reposit
 import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/RepositoryOverviewBranchesPage";
 import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
 import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
+import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
 
 export const routes: RouteObject[] = [
   {
@@ -89,6 +90,10 @@ export const routes: RouteObject[] = [
           {
             path: "members",
             element: <RepositoryMembersPage />,
+          },
+          {
+            path: "stargazers",
+            element: <UsersThatStarredPage />,
           },
           {
             path: "branches",

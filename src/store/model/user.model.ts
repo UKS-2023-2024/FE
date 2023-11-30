@@ -11,3 +11,8 @@ export type User = {
   website: string;
   socialAccounts: SocialAccount[];
 };
+
+export type UserThatStarred = {
+  username: string;
+  location: string;
+};
