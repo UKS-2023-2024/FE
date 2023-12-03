@@ -4,4 +4,5 @@ export type Milestone = {
   dueDate: Date;
   description: string;
   repositoryId: string;
+  closed: boolean;
 };
