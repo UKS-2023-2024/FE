@@ -6,7 +6,7 @@ export const useGetAllBranchesWithoutDefaultByRepositoryId = (repositoryId: stri
   const { axios } = useAxios();
   return useQuery<Branch[]>({
     initialData: [],
-    queryKey: ["all-branches-without-default"],
+    queryKey: ["all-branches-without-default", repositoryId],
     queryFn: () => axios.get(`/branches/without-default/${repositoryId}`).then((res) => res.data),
   });
 };

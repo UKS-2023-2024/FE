@@ -7,7 +7,7 @@ export const useGetAllBranchesWithoutDefaultByRepositoryIdPagination = (reposito
   const { axios } = useAxios();
   return useQuery<PagedResult<Branch>>({
     initialData: {data: [], totalItems: 0},
-    queryKey: ["all-branches-without-default-pagination"],
+    queryKey: ["all-branches-without-default-pagination", repositoryId],
     queryFn: () => axios.get(`/branches/without-default/${repositoryId}/10/${pageNumber}`).then((res) => res.data),
   });
 };
