@@ -23,6 +23,8 @@ import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/Re
 import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
 import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
 import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
+import { CreateIssuePage } from "./modules/issue/CreateIssuePage";
+import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
 
 export const routes: RouteObject[] = [
   {
@@ -70,6 +72,14 @@ export const routes: RouteObject[] = [
           {
             path: "issues",
             element: <RepositoryIssuePage />,
+          },
+          {
+            path: "issues/new",
+            element: <CreateIssuePage />,
+          },
+          {
+            path: "issues/:id",
+            element: <IssueOverviewPage />,
           },
           {
             path: "milestones",
