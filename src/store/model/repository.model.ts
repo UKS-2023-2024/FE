@@ -1,5 +1,5 @@
 import { Organization } from "./organization.model";
-import { RepositoryMember } from "./repositoryMember.model";
+import { RepositoryMemberPresenter } from "./repositoryMember.model";
 
 export type Repository = {
   id: string;
@@ -7,5 +7,5 @@ export type Repository = {
   description: string;
   isPrivate: boolean;
   organization?: Organization;
-  members: RepositoryMember[];
+  members: RepositoryMemberPresenter[];
 };

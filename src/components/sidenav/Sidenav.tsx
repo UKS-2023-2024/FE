@@ -44,7 +44,7 @@ export const Sidenav = () => {
               </>
               ) : (
               <>
-                {repo.members.find(member => member.role === 0)?.member.username} / {repo.name}
+                {repo.members.find(member => member.role === 0)?.username} / {repo.name}
               </>
             )}
           </div>
