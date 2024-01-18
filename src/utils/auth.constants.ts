@@ -20,3 +20,8 @@ export const CREATE_MILESTONE_VALIDATION_SCHEMA = yup.object({
   dueDate: yup.date().optional(),
   description: yup.string().optional(),
 });
+
+export const CREATE_ISSUE_VALIDATION_SCHEMA = yup.object({
+  title: yup.string().required(),
+  description: yup.string().optional(),
+});
