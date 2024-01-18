@@ -26,8 +26,7 @@ export const RepositoryPage = () => {
             onClick={() => navigate(`/home`)}
           >
             {
-              repository?.members?.find((member) => member.role === 0)?.member
-                .username
+              repository?.members?.find((member) => member.role === 0)?.username
             }
           </button>
         )}

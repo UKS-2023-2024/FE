@@ -25,6 +25,7 @@ import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInvit
 import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
 import { CreateIssuePage } from "./modules/issue/CreateIssuePage";
 import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
+import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -137,6 +138,10 @@ export const routes: RouteObject[] = [
       {
         path: "/repository/invites/:token",
         element: <RepositoryInviteAcceptPage />,
+      },
+      {
+        path: "/organizations",
+        element: <AllOrganizationsPage />,
       },
     ],
   },
