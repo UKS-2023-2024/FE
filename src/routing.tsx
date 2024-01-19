@@ -25,6 +25,8 @@ import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInvit
 import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
 import { CreateIssuePage } from "./modules/issue/CreateIssuePage";
 import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
+import { OrganizationMembersPage } from "./modules/organization/OrganizationMembersPage";
+import { OrganizationInviteAcceptPage } from "./modules/organization/OrganizationInviteAcceptPage";
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
 
 export const routes: RouteObject[] = [
@@ -59,6 +61,10 @@ export const routes: RouteObject[] = [
           {
             path: "repositories",
             element: <OrganizationRepositoriesPage />,
+          },
+          {
+            path: "members",
+            element: <OrganizationMembersPage />,
           },
         ],
       },
@@ -138,6 +144,10 @@ export const routes: RouteObject[] = [
       {
         path: "/repository/invites/:token",
         element: <RepositoryInviteAcceptPage />,
+      },
+      {
+        path: "/organization/invites/:token",
+        element: <OrganizationInviteAcceptPage />,
       },
       {
         path: "/organizations",
