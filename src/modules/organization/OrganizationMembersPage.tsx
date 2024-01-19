@@ -101,7 +101,7 @@ export const OrganizationMembersPage = () => {
                       console.log(member.memberId);
                       handleRemove(member.memberId);
                     }}
-                    disabled
+                    disabled={false}
                   >
                     Remove
                   </Button>
