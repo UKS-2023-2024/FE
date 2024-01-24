@@ -11,6 +11,11 @@ import { useDidUserStarRepository } from "../../api/query/repository/useDidUserS
 import { useFindAllUsersThatStarredRepository } from "../../api/query/repository/useFindAllUsersThatStarredRepository";
 import { useStarRepository } from "../../api/mutations/repository/useStarRepository";
 import { useUnstarRepository } from "../../api/mutations/repository/useUnstarRepository";
+import { useIsUserWatchingRepository } from "../../api/query/repository/useIsUserWatchingRepository";
+import { useWatchRepository } from "../../api/mutations/repository/useWatchRepository";
+import eye from "./../../../public/eye.png";
+import { useUnwatchRepository } from "../../api/mutations/repository/useUnwatchRepository";
+import { useFindAllUsersWatchingRepository } from "../../api/query/repository/useFindAllUsersWatchingRepository";
 
 export const RepositoryCodePage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -19,9 +24,11 @@ export const RepositoryCodePage = () => {
   const { mutateAsync: starRepository } = useStarRepository();
   const { mutateAsync: unstarRepository } = useUnstarRepository();
   const { data: didUserStarRepository } = useDidUserStarRepository(repository?.id ?? "");
-  const { data: usersThatStarredRepository } = useFindAllUsersThatStarredRepository(
-    repository?.id ?? ""
-  );
+  const { data: usersThatStarredRepository } = useFindAllUsersThatStarredRepository(repository?.id ?? "");
+  const { data: isUserWatchingRepository } = useIsUserWatchingRepository(repository?.id ?? "");
+  const { mutateAsync: watchRepository } = useWatchRepository();
+  const { mutateAsync: unwatchRepository } = useUnwatchRepository();
+  const { data: usersWatchingRepository } = useFindAllUsersWatchingRepository(repository?.id ?? "");
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -38,6 +45,14 @@ export const RepositoryCodePage = () => {
       return;
     }
     starRepository(repository?.id ?? "");
+  };
+
+  const handleWatching = () => {
+    if (isUserWatchingRepository) {
+      unwatchRepository(repository?.id ?? "");
+      return;
+    }
+    watchRepository(repository?.id ?? "");
   };
 
   return (
@@ -98,13 +113,23 @@ export const RepositoryCodePage = () => {
           )}
         </div>
         <div className="flex gap-3 my-auto">
+
+        <Button
+            className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+            onClick={handleWatching}
+          >
+            <img src={eye} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
+            <div className="bg-gray-600 rounded-[50%] w-5">{usersWatchingRepository.length}</div>
+            {isUserWatchingRepository ? "Unwatch" : "Watch"}
+          </Button>
+
           <Button
             className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
             onClick={() => {
               navigate(`/repository/${repository?.name}/stargazers`);
             }}
           >
-            Show People that Starred this repository
+            Starred by
           </Button>
           <Button
             className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
