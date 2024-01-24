@@ -10,6 +10,7 @@ export type User = {
   company: string;
   website: string;
   socialAccounts: SocialAccount[];
+  notificationPreferences: number
 };
 
 export type UserThatStarred = {
