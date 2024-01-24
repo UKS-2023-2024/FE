@@ -113,7 +113,15 @@ export const RepositoryCodePage = () => {
           )}
         </div>
         <div className="flex gap-3 my-auto">
-
+        
+        <Button
+            className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+            onClick={() => {
+              navigate(`/repository/${repository?.name}/watchers`);
+            }}
+          >
+            Watched by
+        </Button>
         <Button
             className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
             onClick={handleWatching}
