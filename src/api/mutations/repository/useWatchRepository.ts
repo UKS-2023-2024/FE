@@ -1,4 +1,5 @@
 import { useToast } from "../../../components/toast";
+import { WatchRepositoryParams } from "../../../modules/repository/model/WatchRepositoryParams";
 import { useAxios } from "../../useAxios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -8,11 +9,11 @@ export const useWatchRepository = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      axios.patch(`/repositories/watch/${id}`).then((res) => res.data),
+    mutationFn: (data: WatchRepositoryParams) =>
+      axios.patch(`/repositories/watch`, data).then((res) => res.data),
     onSuccess: () => {
       toast({
-        title: "You are now watching this repository!",
+        title: "You changed your watching preferences!",
       });
       queryClient.invalidateQueries({ queryKey: ["is-user-watching"] });
       queryClient.invalidateQueries({ queryKey: ["users-watching"] });
