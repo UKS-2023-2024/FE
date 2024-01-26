@@ -183,7 +183,7 @@ export const RepositoryCodePage = () => {
             {isUserWatchingRepository == 0 ? "Unwatch" : "Watch"}
             <svg
               className={`w-3 h-3 transition-transform transform ${
-                showDropdown ? "rotate-180" : ""
+                showDropdown2 ? "rotate-180" : ""
               }`}
               fill="currentColor"
               viewBox="0 0 20 20"

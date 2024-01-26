@@ -30,6 +30,7 @@ import { OrganizationInviteAcceptPage } from "./modules/organization/Organizatio
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
 import { UsersWatchingPage } from "./modules/repository/UsersWatchingPage";
 import { UserNotificationPreferencesPage } from "./modules/user/UserNotificationPreferencesPage";
+import { NotificationsPage } from "./modules/notifications/NotificationsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -163,6 +164,10 @@ export const routes: RouteObject[] = [
         path: `/settings/notifications`,
         element: <UserNotificationPreferencesPage/>,
       },
+      {
+        path: `/notifications`,
+        element: <NotificationsPage/>
+      }
     ],
   },
 ];
