@@ -13,7 +13,7 @@ export const useUpdateUser = () => {
   const { mutateAsync: getCurrentUser } = useGetCurrentUser();
 
   return useMutation({
-    mutationFn: (data: UpdateUserParams) =>
+    mutationFn: (data: UpdateUserParams) => 
       axios.patch("/user", data).then((res) => res.data),
     onSuccess: () => {
       getCurrentUser(token?? "")

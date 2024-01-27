@@ -87,7 +87,7 @@ export const UserProfilePage = () => {
         <label className="mb-2 text-white">Name</label>
         <Input
           placeholder="Name"
-          className="w-1/2 bg-white"
+          className={`w-1/2 ${isDisabled ? 'bg-gray-200 opacity-50' : 'bg-white'}`}
           value={updateUserParam.fullName}
           onChange={(e) =>
             setUpdateUserParam({
@@ -100,7 +100,7 @@ export const UserProfilePage = () => {
         <label className="mb-2 text-white">Bio</label>
         <textarea
           placeholder="Bio"
-          className="w-1/2 mb-2"
+           className={`w-1/2 mb-2 ${isDisabled ? 'bg-gray-200 opacity-50' : 'bg-white'}`}
           value={updateUserParam.bio}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, bio: e.target.value })
@@ -110,7 +110,7 @@ export const UserProfilePage = () => {
         <label className="mb-2 text-white">Company</label>
         <Input
           placeholder="Company"
-          className="w-1/2 bg-white"
+          className={`w-1/2 ${isDisabled ? 'bg-gray-200 opacity-50' : 'bg-white'}`}
           value={updateUserParam.company}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, company: e.target.value })
@@ -120,7 +120,7 @@ export const UserProfilePage = () => {
         <label className="mb-2 text-white">Location</label>
         <Input
           placeholder="Location"
-          className="w-1/2 bg-white"
+          className={`w-1/2 ${isDisabled ? 'bg-gray-200 opacity-50' : 'bg-white'}`}
           value={updateUserParam.location}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, location: e.target.value })
@@ -130,7 +130,7 @@ export const UserProfilePage = () => {
         <label className="mb-2 text-white">Website</label>
         <Input
           placeholder="Website"
-          className="w-1/2 bg-white"
+          className={`w-1/2 ${isDisabled ? 'bg-gray-200 opacity-50' : 'bg-white'}`}
           value={updateUserParam.website}
           onChange={(e) =>
             setUpdateUserParam({ ...updateUserParam, website: e.target.value })
@@ -142,6 +142,7 @@ export const UserProfilePage = () => {
           <ul>
             {updateUserParam.socialAccounts.map((account, index) => (
               <li key={index} className="flex items-center mb-2">
+                { !isDisabled &&
                 <Input
                   placeholder="Link to social account"
                   disabled={isDisabled}
@@ -155,6 +156,13 @@ export const UserProfilePage = () => {
                     });
                   }}
                 />
+                }
+                {
+                  isDisabled &&
+                  <div className="text-align-l">
+                    <a href={account.value} className="text-blue-500 underline">{account.value}</a>
+                  </div>
+                }
                 {!isDisabled && (
                   <Button onClick={() => removeSocialAccount(index)} className="ml-2 px-2">
                     Remove

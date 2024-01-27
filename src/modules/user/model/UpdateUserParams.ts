@@ -1,4 +1,5 @@
 export type SocialAccountParams = {
+    id: string
     value: string
 }
 
