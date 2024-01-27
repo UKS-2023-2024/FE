@@ -17,7 +17,7 @@ function App() {
         </div>
         <Toaster />
       </div>
-      <ReactQueryDevtools initialIsOpen={false} position="top" />
+      <ReactQueryDevtools initialIsOpen={false} position="bottom" />
     </QueryClientProvider>
   );
 }
