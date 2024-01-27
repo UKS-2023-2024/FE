@@ -28,6 +28,7 @@ import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
 import { OrganizationMembersPage } from "./modules/organization/OrganizationMembersPage";
 import { OrganizationInviteAcceptPage } from "./modules/organization/OrganizationInviteAcceptPage";
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
+import { UsersWatchingPage } from "./modules/repository/UsersWatchingPage";
 
 export const routes: RouteObject[] = [
   {
@@ -129,6 +130,10 @@ export const routes: RouteObject[] = [
                 element: <RepositoryAllBranchesPage />,
               },
             ],
+          },
+          {
+            path: "watchers",
+            element: <UsersWatchingPage/>,
           },
         ],
       },

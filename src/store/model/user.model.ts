@@ -16,3 +16,8 @@ export type UserThatStarred = {
   username: string;
   location: string;
 };
+
+export type UserWatching = {
+  username: string;
+  location: string;
+};
