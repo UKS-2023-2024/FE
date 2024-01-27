@@ -10,14 +10,13 @@ export const Button = ({
   children,
   onClick = () => {},
   className = "",
+  disabled,
 }: Props & HTMLProps<HTMLInputElement>) => {
   return (
     <button
       onClick={onClick}
-      className={cn(
-        "bg-green-600 rounded text-white hover:bg-green-500 p-2",
-        className
-      )}
+      className={cn("bg-green-600 rounded text-white hover:bg-green-500 p-2", className)}
+      disabled={disabled}
     >
       {children}
     </button>

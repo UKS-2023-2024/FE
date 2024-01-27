@@ -10,7 +10,6 @@ import { PlusIcon, Trash2 } from "lucide-react";
 import React from "react";
 import {
   FormControl,
-  InputLabel,
   MenuItem,
   Popper,
   Select,

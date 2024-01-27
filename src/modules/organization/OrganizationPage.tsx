@@ -15,9 +15,8 @@ export const OrganizationPage = () => {
           <Tab>Packages</Tab>
           <Tab>Teams</Tab>
           <Tab>People</Tab>
-          <Tab onClick={() => navigate(`/organizations/${name}/settings`)}>
-            Settings
-          </Tab>
+          <Tab onClick={() => navigate(`/organizations/${name}/settings`)}>Settings</Tab>
+          <Tab onClick={() => navigate(`/organizations/${name}/members`)}>Members</Tab>
         </ul>
       </div>
       <Outlet />

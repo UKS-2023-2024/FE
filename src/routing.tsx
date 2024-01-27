@@ -23,6 +23,10 @@ import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/Re
 import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
 import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
 import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
+import { CreateIssuePage } from "./modules/issue/CreateIssuePage";
+import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
+import { OrganizationMembersPage } from "./modules/organization/OrganizationMembersPage";
+import { OrganizationInviteAcceptPage } from "./modules/organization/OrganizationInviteAcceptPage";
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
 
 export const routes: RouteObject[] = [
@@ -58,6 +62,10 @@ export const routes: RouteObject[] = [
             path: "repositories",
             element: <OrganizationRepositoriesPage />,
           },
+          {
+            path: "members",
+            element: <OrganizationMembersPage />,
+          },
         ],
       },
       {
@@ -71,6 +79,14 @@ export const routes: RouteObject[] = [
           {
             path: "issues",
             element: <RepositoryIssuePage />,
+          },
+          {
+            path: "issues/new",
+            element: <CreateIssuePage />,
+          },
+          {
+            path: "issues/:id",
+            element: <IssueOverviewPage />,
           },
           {
             path: "milestones",
@@ -130,9 +146,13 @@ export const routes: RouteObject[] = [
         element: <RepositoryInviteAcceptPage />,
       },
       {
+        path: "/organization/invites/:token",
+        element: <OrganizationInviteAcceptPage />,
+      },
+      {
         path: "/organizations",
-        element: <AllOrganizationsPage/>,
-      }
+        element: <AllOrganizationsPage />,
+      },
     ],
   },
 ];
