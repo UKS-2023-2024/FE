@@ -29,6 +29,8 @@ import { OrganizationMembersPage } from "./modules/organization/OrganizationMemb
 import { OrganizationInviteAcceptPage } from "./modules/organization/OrganizationInviteAcceptPage";
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
 import { UsersWatchingPage } from "./modules/repository/UsersWatchingPage";
+import { UserNotificationPreferencesPage } from "./modules/user/UserNotificationPreferencesPage";
+import { NotificationsPage } from "./modules/notifications/NotificationsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -44,7 +46,7 @@ export const routes: RouteObject[] = [
         element: <RegisterPage />,
       },
       {
-        path: `/profile`,
+        path: `/settings/profile`,
         element: <UserProfilePage />,
       },
       {
@@ -158,6 +160,14 @@ export const routes: RouteObject[] = [
         path: "/organizations",
         element: <AllOrganizationsPage />,
       },
+      {
+        path: `/settings/notifications`,
+        element: <UserNotificationPreferencesPage/>,
+      },
+      {
+        path: `/notifications`,
+        element: <NotificationsPage/>
+      }
     ],
   },
 ];
