@@ -8,9 +8,19 @@ import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.mo
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
 import { PlusIcon, Trash2 } from "lucide-react";
 import React from "react";
-import { Popper } from "@mui/material";
+import {
+  FormControl,
+  MenuItem,
+  Popper,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { Event } from "../../store/model/event.model";
+import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
+import { useAssignMilestoneToIssue } from "../../api/mutations/issue/useAssignMilestoneToIssue";
+import { useUnassignMilestoneFromIssue } from "../../api/mutations/issue/useUnassignMilestoneFromIssue";
+import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -21,9 +31,19 @@ export const IssueOverviewPage = () => {
   const { data: repositoryMembers } = useGetRepositoryMembers(
     selectedRepository.id ?? ""
   );
+  const { data: repositoryMilestones } =
+    useGetRepositoryMilestones(selectedRepository);
+  const { data: issueEvents } = useGetIssueEvents(id ?? "");
+
   const { mutateAsync: assignIssueToUser } = useAssignIssueToUser();
+  const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
+  const { mutateAsync: unassignMilestoneFromIssue } =
+    useUnassignMilestoneFromIssue();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [selectedMilestone, setSelectedMilestone] = React.useState(
+    issue?.milestone?.id
+  );
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -62,6 +82,38 @@ export const IssueOverviewPage = () => {
     return issue?.assignees.find((assignee) => assignee.id === member.id);
   };
 
+  const handleMilestoneChange = async (event: SelectChangeEvent) => {
+    setSelectedMilestone(event.target.value);
+
+    if (issue?.milestone) {
+      await unassignMilestoneFromIssue({
+        id: issue?.id ?? "",
+        title: issue?.title ?? "",
+        description: issue?.description ?? "",
+        repositoryId: issue?.repositoryId ?? "",
+        labelsIds: issue?.labels ?? [],
+        milestoneId: event.target.value,
+        state: issue?.state ?? -1,
+        number: issue?.number ?? -1,
+        assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+      });
+    } else {
+      await assignMilestoneToIssue({
+        id: issue?.id ?? "",
+        title: issue?.title ?? "",
+        description: issue?.description ?? "",
+        repositoryId: issue?.repositoryId ?? "",
+        labelsIds: issue?.labels ?? [],
+        milestoneId: event.target.value,
+        state: issue?.state ?? -1,
+        number: issue?.number ?? -1,
+        assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+      });
+    }
+
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
   const constructEventMessage = (event: Event) => {
     if (event.eventType === 0) return;
     if (event.eventType === 2)
@@ -89,6 +141,38 @@ export const IssueOverviewPage = () => {
           <span className="text-gray-500"> unassigned this issue from </span>
           <span className="text-white text-lg font-bold">
             {event.assignee.member.username}
+          </span>
+          <span className="text-gray-500">
+            {" "}
+            on {formatDate(event.createdAt)}
+          </span>
+        </div>
+      );
+    if (event.eventType === 4)
+      return (
+        <div>
+          <span className="text-white text-lg font-bold">
+            {event.creator.username}{" "}
+          </span>
+          <span className="text-gray-500"> added this issue to </span>
+          <span className="text-white text-lg font-bold">
+            {issue?.milestone.title} milestone
+          </span>
+          <span className="text-gray-500">
+            {" "}
+            on {formatDate(event.createdAt)}
+          </span>
+        </div>
+      );
+    if (event.eventType === 5)
+      return (
+        <div>
+          <span className="text-white text-lg font-bold">
+            {event.creator.username}{" "}
+          </span>
+          <span className="text-gray-500"> removed this issue from </span>
+          <span className="text-white text-lg font-bold">
+            {issue?.milestone.title} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -175,6 +259,41 @@ export const IssueOverviewPage = () => {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="border"></div>
+
+          <div>
+            <div className="flex gap-2 pt-10">
+              <div className="text-gray-600">Milestone</div>
+            </div>
+            <FormControl fullWidth variant="standard">
+              <Select
+                labelId="demo-simple-select-standard-label"
+                id="demo-simple-select-standard"
+                value={selectedMilestone}
+                onChange={handleMilestoneChange}
+                className="bg-white"
+              >
+                {repositoryMilestones.map((milestone) => (
+                  <MenuItem
+                    key={milestone.id}
+                    value={milestone.id}
+                    className="w-full flex gap-3"
+                  >
+                    <span>{milestone.title}</span>
+                    {milestone.closed ? (
+                      <span className="bg-red-600 text-white rounded-xl p-1">
+                        closed
+                      </span>
+                    ) : (
+                      <span className="bg-green-600 text-white rounded-xl p-1">
+                        open
+                      </span>
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
           <div className="border"></div>
         </div>
