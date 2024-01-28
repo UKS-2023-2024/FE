@@ -8,8 +8,7 @@ export const useGetOrganizationMemberRole = (organizationId: string) => {
     initialData: undefined,
     queryKey: ["organization-member-role", organizationId],
     queryFn: () => axios.get(`/organizations/${organizationId}/member-role`).then((res) => {
-      if (res.data == "OWNER") return OrganizationMemberRole.OWNER;
-      return OrganizationMemberRole.MEMBER;
+      return res.data
     }),
   });
 };

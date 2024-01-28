@@ -2,8 +2,8 @@ import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../store/store";
 import { useFindAllUsersThatStarredRepository } from "../../api/query/repository/useFindAllUsersThatStarredRepository";
 import { UserThatStarred } from "../../store/model/user.model";
-import githubPerson from "./../../../public/githubPerson.png";
-import location from "./../../../public/location.png";
+import githubPerson from "./../../assets/githubPerson.png";
+import location from "./../../assets/location.png";
 
 export const UsersThatStarredPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);

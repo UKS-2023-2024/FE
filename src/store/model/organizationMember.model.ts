@@ -7,5 +7,6 @@ export type OrganizationMemberPresenter = {
 
 export enum OrganizationMemberRole {
   OWNER,
+  MODERATOR,
   MEMBER
 }

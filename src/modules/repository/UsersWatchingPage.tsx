@@ -1,15 +1,13 @@
 import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../store/store";
 import { UserWatching } from "../../store/model/user.model";
-import githubPerson from "./../../../public/githubPerson.png";
-import location from "./../../../public/location.png";
+import githubPerson from "./../../assets/githubPerson.png";
+import location from "./../../assets/location.png";
 import { useFindAllUsersWatchingRepository } from "../../api/query/repository/useFindAllUsersWatchingRepository";
 
 export const UsersWatchingPage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
-  const { data: usersWatchingRepository} = useFindAllUsersWatchingRepository(
-    repository?.id ?? ""
-  );
+  const { data: usersWatchingRepository } = useFindAllUsersWatchingRepository(repository?.id ?? "");
 
   return (
     <div className="w-full flex flex-col items-center pt-6">

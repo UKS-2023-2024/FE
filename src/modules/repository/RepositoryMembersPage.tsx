@@ -9,7 +9,7 @@ import {
   RepositoryMemberRole,
 } from "../../store/model/repositoryMember.model";
 import { cn } from "../../utils/cn";
-import githubPerson from "./../../../public/githubPerson.png";
+import githubPerson from "./../../assets/githubPerson.png";
 import { useGetRepositoryMemberRole } from "../../api/query/repository-member/useGetRepositoryMemberRole";
 import { useRemoveRepositoryMember } from "../../api/mutations/repository-member/useRemoveRepositoryMember";
 import { useChangeRepositoryMemberRole } from "../../api/mutations/repository-member/useChangeRepositoryMemberRole";
