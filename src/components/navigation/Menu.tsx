@@ -55,7 +55,7 @@ export const Menu = () => {
             onClick={() => navigate("/notifications")}
           />
           <DropdownMenu>
-            <DropdownMenuTrigger className="text-white focus:ring-0 focus:outline-none ">
+            <DropdownMenuTrigger className="text-white focus:ring-0 focus:outline-none">
               {currentUser?.fullName}
             </DropdownMenuTrigger>
             <DropdownMenuContent>

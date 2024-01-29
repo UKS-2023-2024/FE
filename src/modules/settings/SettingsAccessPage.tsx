@@ -1,8 +1,14 @@
 import { useState } from "react"
 import { Button, Textarea } from "../../components"
+import { useSetPublicKey } from "../../api/mutations/settings/useSetPublicKey"
 
 export const SettingsAccessPage = () => {
     const [publicKey, setPublicKey] = useState("")
+    const { mutateAsync: updatePublicKey } = useSetPublicKey();
+
+    const handleUpdatePublicKey = async () => {
+        await updatePublicKey(publicKey);
+    }
 
     return <div className="w-full h-full flex flex-col gap-2">
         <h2 className="text-3xl text-white">
@@ -15,10 +21,7 @@ export const SettingsAccessPage = () => {
                 className="text-white h-40"
                 placeholder="Paste your public key here..."
                 value={publicKey} onChange={(e: any) => setPublicKey(e.target.value)} />
-            <div className="flex w-full">
-                <Button className="w-[200px]">Save</Button>
-            </div>
+            <Button className="w-[200px]" onClick={handleUpdatePublicKey}>Save</Button>
         </div>
-
     </div>
 }
