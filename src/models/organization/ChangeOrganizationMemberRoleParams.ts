@@ -1,4 +1,4 @@
-import { OrganizationMemberRole } from "../../../store/model/organizationMember.model";
+import { OrganizationMemberRole } from "../../store/model/organizationMember.model";
 
 export type ChangeOrganizationMemberRoleParams = {
   organizationMemberId: string;

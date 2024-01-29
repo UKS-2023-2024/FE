@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useToast } from "../../components/toast";
-import { UpdateUserParams } from "../../modules/user/model/UpdateUserParams";
+import { UpdateUserParams } from "../../models/settings/UpdateUserParams";
 import { useGetCurrentUser } from "../query/useGetCurrentUser";
 import { useAxios } from "../useAxios";
 import { useMutation } from "@tanstack/react-query";
@@ -13,10 +13,10 @@ export const useUpdateUser = () => {
   const { mutateAsync: getCurrentUser } = useGetCurrentUser();
 
   return useMutation({
-    mutationFn: (data: UpdateUserParams) => 
+    mutationFn: (data: UpdateUserParams) =>
       axios.patch("/user", data).then((res) => res.data),
     onSuccess: () => {
-      getCurrentUser(token?? "")
+      getCurrentUser(token ?? "")
       toast({
         title: "Successfully updated profile!",
       });

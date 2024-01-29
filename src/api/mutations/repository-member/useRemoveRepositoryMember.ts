@@ -1,5 +1,5 @@
 import { useToast } from "../../../components/toast";
-import { RemoveRepositoryMemberParams } from "../../../modules/repository/model/RemoveRepositoryMemberParams";
+import { RemoveRepositoryMemberParams } from "../../../models/repositories/RemoveRepositoryMemberParams";
 import { useAxios } from "../../useAxios";
 import { useMutation } from "@tanstack/react-query";
 
