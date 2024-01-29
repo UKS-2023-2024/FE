@@ -1,5 +1,5 @@
 import { useToast } from "../../../components/toast";
-import { UpdateBranchParams } from "../../../modules/repository/branches/model/UpdateBranchParams";
+import { UpdateBranchParams } from "../../../models/repositories/branches/UpdateBranchParams";
 import { useAxios } from "../../useAxios";
 import { useMutation } from "@tanstack/react-query";
 
@@ -8,7 +8,7 @@ export const useUpdateBranch = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: (data: UpdateBranchParams) => 
+    mutationFn: (data: UpdateBranchParams) =>
       axios.patch(`/branches`, data).then((res) => res.data),
     onSuccess: () => {
       toast({

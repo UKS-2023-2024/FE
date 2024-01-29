@@ -1,7 +1,7 @@
 import { useToast } from "../../../components/toast";
 import { useAxios } from "../../useAxios";
 import { useMutation } from "@tanstack/react-query";
-import { UpdateRepositoryParams } from "../../../modules/repository/model/UpdateRepositoryParams";
+import { UpdateRepositoryParams } from "../../../models/repositories/UpdateRepositoryParams";
 import { Repository } from "../../../store/model/repository.model";
 import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../../store/store";

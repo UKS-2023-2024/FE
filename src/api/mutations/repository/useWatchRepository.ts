@@ -1,5 +1,5 @@
 import { useToast } from "../../../components/toast";
-import { WatchRepositoryParams } from "../../../modules/repository/model/WatchRepositoryParams";
+import { WatchRepositoryParams } from "../../../models/repositories/WatchRepositoryParams";
 import { useAxios } from "../../useAxios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
