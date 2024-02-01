@@ -17,6 +17,8 @@ import eye from "./../../assets/eye.png";
 import { useUnwatchRepository } from "../../api/mutations/repository/useUnwatchRepository";
 import { useFindAllUsersWatchingRepository } from "../../api/query/repository/useFindAllUsersWatchingRepository";
 import check from "./../../assets/check.png";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFile, faFolder } from '@fortawesome/free-solid-svg-icons';
 
 export const RepositoryCodePage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -38,6 +40,15 @@ export const RepositoryCodePage = () => {
   const [showDropdown3, setShowDropdown3] = useState(false);
   const [issuesChecked, setIssuesChecked] = useState(false);
   const [pullRequestsChecked, setPullRequestsChecked] = useState(false);
+
+  const fileTree = [
+    {isFolder: true, name: 'Documents'},
+    {isFolder: false, name: 'Document 1.txt'},
+    {isFolder: true, name: 'Document 2.txt'},
+    {isFolder: false, name: 'Images'},
+    {isFolder: true, name: 'Image 1.jpg'},
+    {isFolder: true, name: 'Image 2.png'}
+  ];
 
   useEffect(() => {
     setIssuesChecked(isUserWatchingRepository === 2 || isUserWatchingRepository === 4);
@@ -106,90 +117,17 @@ export const RepositoryCodePage = () => {
 
   return (
     <div className="w-full flex flex-col items-center pt-10">
-      <div className="w-[1024px] flex justify-between">
-        <div className="p-2 w-1/4">
-          <div
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-900 text-white text-sm w-full cursor-pointer flex justify-between items-center"
-            onClick={() => setShowDropdown(!showDropdown)}
-          >
-            <span>{defaultBranch?.name}</span>
-            <svg
-              className={`w-3 h-3 transition-transform transform ${
-                showDropdown ? "rotate-180" : ""
-              }`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 15a1 1 0 01-.707-.293l-4-4a1 1 0 111.414-1.414L10 12.586l3.293-3.293a1 1 0 111.414 1.414l-4 4A1 1 0 0110 15z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-
-          {showDropdown && (
-            <div className="absolute mt-1 w-1/4 bg-gray-900 border border-gray-300 dark:border-gray-600 rounded text-sm">
-              <div className="max-h-1/2 overflow-y-auto">
-                <div
-                  key={defaultBranch?.name}
-                  className="flex flex-row justify-between py-1 px-3 text-white hover:bg-gray-700 cursor-pointer"
-                  onClick={() => onBranchSelect(defaultBranch)}
-                >
-                  <span>{defaultBranch?.name}</span>
-                  <div className="w-[72px] h-[20px] rounded-full text-xs text-center border border-white text-white">
-                    Default
-                  </div>
-                </div>
-                {allBranches.map((branch) => (
-                  <div
-                    key={branch.name}
-                    className="py-1 px-3 text-white hover:bg-gray-700 cursor-pointer"
-                    onClick={() => onBranchSelect(branch)}
-                  >
-                    {branch.name}
-                  </div>
-                ))}
-              </div>
-              <div
-                className="text-center py-1 px-3 text-blue-500 cursor-pointer underline"
-                onClick={() => onBranchSelect(undefined)}
-              >
-                View all branches
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex gap-3 my-auto">
-          <Button
-            className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
-            onClick={() => {
-              navigate(`/repository/${repository?.name}/watchers`);
-            }}
-          >
-            Watchers
-          </Button>
-
-          <div className="p w-1/4">
+      <div>
+        <div className="w-[1024px] flex justify-between">
+          <div className="p-2 w-1/4">
             <div
-              className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-800 text-white text-sm w-full cursor-pointer flex justify-between items-center"
-              onClick={() => {
-                if (showDropdown3) {
-                  setShowDropdown3(false);
-                  return;
-                }
-                setShowDropdown2(!showDropdown2);
-              }}
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-900 text-white text-sm w-full cursor-pointer flex justify-between items-center"
+              onClick={() => setShowDropdown(!showDropdown)}
             >
-              <img src={eye} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
-              <div className="ml-1 mr-2 bg-gray-600 rounded-[50%] w-5 flex justify-center">
-                {usersWatchingRepository.length}
-              </div>
-              {isUserWatchingRepository == 0 ? "Unwatch" : "Watch"}
+              <span>{defaultBranch?.name}</span>
               <svg
                 className={`w-3 h-3 transition-transform transform ${
-                  showDropdown2 ? "rotate-180" : ""
+                  showDropdown ? "rotate-180" : ""
                 }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -203,126 +141,212 @@ export const RepositoryCodePage = () => {
               </svg>
             </div>
 
-            {showDropdown2 && (
-              <div className="flex flex-col text-white absolute mt-1 w-1/4 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm">
-                <div className="flex flex-row text-align-l p-3">
-                  <button onClick={handleUnWatch}>Participating and @mentions</button>
-                  {isUserWatchingRepository?.toString() == "" && (
-                    <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                  )}
-                </div>
-                <hr></hr>
-                <div className="flex flex-row text-align-l p-3">
-                  <button onClick={handleAllActivityWatching}>All activity</button>
-                  {isUserWatchingRepository === 0 && (
-                    <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                  )}
-                </div>
-                <hr></hr>
-                <div className="flex flex-row p-3">
-                  <button value={1}>
-                    <div onClick={handleIgnoreWatching} className="flex flex-col text-left">
-                      Ignore
-                      <span className="text-xs">Never be notified</span>
-                    </div>
-                  </button>
-                  {isUserWatchingRepository === 1 && (
-                    <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                  )}
-                </div>
-                <hr></hr>
-                <div className="flex flex-row p-3">
-                  <button
-                    onClick={() => {
-                      setShowDropdown2(false);
-                      setShowDropdown3(true);
-                    }}
+            {showDropdown && (
+              <div className="absolute mt-1 w-1/4 bg-gray-900 border border-gray-300 dark:border-gray-600 rounded text-sm">
+                <div className="max-h-1/2 overflow-y-auto">
+                  <div
+                    key={defaultBranch?.name}
+                    className="flex justify-between py-1 px-3 text-white hover:bg-gray-700 cursor-pointer"
+                    onClick={() => onBranchSelect(defaultBranch)}
                   >
-                    <div className="flex flex-col text-left">
-                      Custom
-                      <span className="text-xs">
-                        Select events you want to be notified on in addition to participating and
-                        @mentions
-                      </span>
+                    <span>{defaultBranch?.name}</span>
+                    <div className="w-[72px] h-[20px] rounded-full text-xs text-center border border-white text-white">
+                      Default
                     </div>
-                  </button>
-                  {(isUserWatchingRepository === 2 ||
-                    isUserWatchingRepository === 3 ||
-                    isUserWatchingRepository === 4) && (
-                    <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {showDropdown3 && (
-              <div className="flex flex-col text-white absolute mt-1 w-1/5 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm">
-                <div className="text-align-l p-3">
-                  <div className="flex flex-col">
-                    <label className="text-white mb-2">
-                      <svg
-                        className={`w-3 h-3 transition-transform transform mb-2 cursor-pointer`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                        onClick={() => {
-                          setShowDropdown3(false);
-                          setShowDropdown2(true);
-                        }}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M15 19l-7-7 7-7"
-                        />
-                      </svg>
-                      <input
-                        className="mr-2"
-                        type="checkbox"
-                        name="2"
-                        checked={issuesChecked}
-                        onChange={handleIssuesWatching}
-                      />
-                      Issues
-                    </label>
-
-                    <label className="text-white mb-2">
-                      <input
-                        className="mr-2"
-                        type="checkbox"
-                        name="3"
-                        checked={pullRequestsChecked}
-                        onChange={handlePullRequestsWatching}
-                      />
-                      Pull requests
-                    </label>
                   </div>
+                  {allBranches.map((branch) => (
+                    <div
+                      key={branch.name}
+                      className="py-1 px-3 text-white hover:bg-gray-700 cursor-pointer"
+                      onClick={() => onBranchSelect(branch)}
+                    >
+                      {branch.name}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="text-center py-1 px-3 text-blue-500 cursor-pointer underline"
+                  onClick={() => onBranchSelect(undefined)}
+                >
+                  View all branches
                 </div>
               </div>
             )}
           </div>
-          <div className="flex gap-3 my-auto"></div>
+          <div className="flex gap-3 my-auto">
+            <Button
+              className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+              onClick={() => {
+                navigate(`/repository/${repository?.name}/watchers`);
+              }}
+            >
+              Watchers
+            </Button>
 
-          <Button
-            className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
-            onClick={() => {
-              navigate(`/repository/${repository?.name}/stargazers`);
-            }}
-          >
-            Stargazers
-          </Button>
-          <Button
-            className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
-            onClick={handleStarring}
-          >
-            <img src={star} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
-            <div className="bg-gray-600 rounded-[50%] w-5">{usersThatStarredRepository.length}</div>
-            {didUserStarRepository ? "Unstar" : "Star"}
-          </Button>
+            <div className="p w-1/4">
+              <div
+                className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-800 text-white text-sm w-full cursor-pointer flex justify-between items-center"
+                onClick={() => {
+                  if (showDropdown3) {
+                    setShowDropdown3(false);
+                    return;
+                  }
+                  setShowDropdown2(!showDropdown2);
+                }}
+              >
+                <img src={eye} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
+                <div className="ml-1 mr-2 bg-gray-600 rounded-[50%] w-5 flex justify-center">
+                  {usersWatchingRepository.length}
+                </div>
+                {isUserWatchingRepository == 0 ? "Unwatch" : "Watch"}
+                <svg
+                  className={`w-3 h-3 transition-transform transform ${
+                    showDropdown2 ? "rotate-180" : ""
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 15a1 1 0 01-.707-.293l-4-4a1 1 0 111.414-1.414L10 12.586l3.293-3.293a1 1 0 111.414 1.414l-4 4A1 1 0 0110 15z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              {showDropdown2 && (
+                <div className="flex flex-col text-white absolute mt-1 w-1/4 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm">
+                  <div className="flex text-align-l p-3">
+                    <button onClick={handleUnWatch}>Participating and @mentions</button>
+                    {isUserWatchingRepository?.toString() == "" && (
+                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                    )}
+                  </div>
+                  <hr></hr>
+                  <div className="flex text-align-l p-3">
+                    <button onClick={handleAllActivityWatching}>All activity</button>
+                    {isUserWatchingRepository === 0 && (
+                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                    )}
+                  </div>
+                  <hr></hr>
+                  <div className="flex p-3">
+                    <button value={1}>
+                      <div onClick={handleIgnoreWatching} className="flex flex-col text-left">
+                        Ignore
+                        <span className="text-xs">Never be notified</span>
+                      </div>
+                    </button>
+                    {isUserWatchingRepository === 1 && (
+                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                    )}
+                  </div>
+                  <hr></hr>
+                  <div className="flex p-3">
+                    <button
+                      onClick={() => {
+                        setShowDropdown2(false);
+                        setShowDropdown3(true);
+                      }}
+                    >
+                      <div className="flex flex-col text-left">
+                        Custom
+                        <span className="text-xs">
+                          Select events you want to be notified on in addition to participating and
+                          @mentions
+                        </span>
+                      </div>
+                    </button>
+                    {(isUserWatchingRepository === 2 ||
+                      isUserWatchingRepository === 3 ||
+                      isUserWatchingRepository === 4) && (
+                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {showDropdown3 && (
+                <div className="flex flex-col text-white absolute mt-1 w-1/5 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm">
+                  <div className="text-align-l p-3">
+                    <div className="flex flex-col">
+                      <label className="text-white mb-2">
+                        <svg
+                          className={`w-3 h-3 transition-transform transform mb-2 cursor-pointer`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          onClick={() => {
+                            setShowDropdown3(false);
+                            setShowDropdown2(true);
+                          }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                        <input
+                          className="mr-2"
+                          type="checkbox"
+                          name="2"
+                          checked={issuesChecked}
+                          onChange={handleIssuesWatching}
+                        />
+                        Issues
+                      </label>
+
+                      <label className="text-white mb-2">
+                        <input
+                          className="mr-2"
+                          type="checkbox"
+                          name="3"
+                          checked={pullRequestsChecked}
+                          onChange={handlePullRequestsWatching}
+                        />
+                        Pull requests
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 my-auto"></div>
+
+            <Button
+              className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+              onClick={() => {
+                navigate(`/repository/${repository?.name}/stargazers`);
+              }}
+            >
+              Stargazers
+            </Button>
+            <Button
+              className="px-6 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+              onClick={handleStarring}
+            >
+              <img src={star} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
+              <div className="bg-gray-600 rounded-[50%] w-5">{usersThatStarredRepository.length}</div>
+              {didUserStarRepository ? "Unstar" : "Star"}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="w-full mt-10">
+        {fileTree.map((node) => (
+          <div key={node.name} className="flex w-3/4 mx-auto">
+            <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
+              <FontAwesomeIcon icon={node.isFolder ? faFile : faFolder} className="icon white" />
+              <div className="ml-3">{node.name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+  </div>
   );
 };
