@@ -118,10 +118,10 @@ export const RepositoryCodePage = () => {
   return (
     <div className="w-full flex flex-col items-center pt-10">
       <div>
-        <div className="w-[1024px] flex justify-between">
+        <div className="w-[1024px] h-10 flex justify-between">
           <div className="p-2 w-1/4">
             <div
-              className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-900 text-white text-sm w-full cursor-pointer flex justify-between items-center"
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-800 text-white text-sm w-full cursor-pointer flex justify-between items-center"
               onClick={() => setShowDropdown(!showDropdown)}
             >
               <span>{defaultBranch?.name}</span>
@@ -142,7 +142,7 @@ export const RepositoryCodePage = () => {
             </div>
 
             {showDropdown && (
-              <div className="absolute mt-1 w-1/4 bg-gray-900 border border-gray-300 dark:border-gray-600 rounded text-sm">
+              <div className="absolute mt-1 w-1/4 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm">
                 <div className="max-h-1/2 overflow-y-auto">
                   <div
                     key={defaultBranch?.name}
@@ -185,7 +185,7 @@ export const RepositoryCodePage = () => {
 
             <div className="p w-1/4">
               <div
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-800 text-white text-sm w-full cursor-pointer flex justify-between items-center"
+                className="p-2 h-10 border border-gray-300 dark:border-gray-600 rounded appearance-none bg-gray-800 text-white text-sm w-full cursor-pointer flex justify-between items-center"
                 onClick={() => {
                   if (showDropdown3) {
                     setShowDropdown3(false);
