@@ -42,8 +42,9 @@ export const RepositoryCodePage = () => {
   const [issuesChecked, setIssuesChecked] = useState(false);
   const [pullRequestsChecked, setPullRequestsChecked] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | undefined>(undefined)
-  const { data: fileTree } = useGetFileTree(selectedBranch?.id, "/")
-
+  const [path, setPath] = useState("/")
+  const { data: fileTree } = useGetFileTree(selectedBranch?.id, path)
+  
   useEffect(() => {
     setIssuesChecked(isUserWatchingRepository === 2 || isUserWatchingRepository === 4);
     setPullRequestsChecked(isUserWatchingRepository === 3 || isUserWatchingRepository === 4);
@@ -314,11 +315,27 @@ export const RepositoryCodePage = () => {
       </div>
 
       <div className="w-full mt-10">
+        { path != "/" &&
+        <div key="back" className="flex w-3/4 mx-auto">
+            <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
+              <FontAwesomeIcon icon={faFolder} className="icon white" />
+              <div className="ml-3 cursor-pointer" onClick={() => setPath(prevPath => {
+                  const lastSlashIndex = prevPath.lastIndexOf('/');
+                  if (lastSlashIndex !== -1) {
+                    const newLastSlashIndex = prevPath.slice(0, lastSlashIndex - 1).lastIndexOf('/');
+                    return newLastSlashIndex !== -1 ? prevPath.slice(0, newLastSlashIndex + 1) : '/';
+                  } else {
+                    return '/';
+                  }
+              })}>...</div>
+            </div>
+        </div>
+        }
         {fileTree.map((node) => (
           <div key={node.name} className="flex w-3/4 mx-auto">
             <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
               <FontAwesomeIcon icon={node.isFolder ? faFolder : faFile} className="icon white" />
-              <div className="ml-3">{node.name}</div>
+              <div className="ml-3 cursor-pointer" onClick={() => {setPath(`${path}${node.name}/`)}}>{node.name}</div>
             </div>
           </div>
         ))}
