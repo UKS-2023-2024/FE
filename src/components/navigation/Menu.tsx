@@ -58,7 +58,7 @@ export const Menu = () => {
             <DropdownMenuTrigger className="text-white focus:ring-0 focus:outline-none">
               {currentUser?.fullName}
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="bg-gray-800 text-white">
               <DropdownMenuItem onClick={() => navigate("/settings")}>Settings</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

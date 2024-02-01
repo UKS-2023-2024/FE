@@ -29,7 +29,10 @@ export const Sidenav = () => {
         Your Organizations
       </Button>
       <div className="border-b border-gray-600 mt-6 mb-6"></div>
-      <div className="text-white mb-5"><i>Top Repositories:</i></div>
+      <div className="flex items-center">
+        <div className="text-white"><i>Top Repositories:</i></div>
+        <Button onClick={() => navigate("/new-repository")} className="ml-5">New</Button>
+      </div>
       <div>
         {userRepositories.map((repo: Repository) => (
           <div
