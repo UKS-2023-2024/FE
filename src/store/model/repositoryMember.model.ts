@@ -15,5 +15,6 @@ export type RepositoryMemberPresenter = {
 export enum RepositoryMemberRole {
   OWNER,
   ADMIN,
-  CONTRIBUTOR
+  READ,
+  WRITE
 }

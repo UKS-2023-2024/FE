@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { useAtom } from "jotai";
 import { currentOrganizationAtom } from "../../store/store";
@@ -6,6 +6,13 @@ import { cn } from "../../utils/cn";
 import githubPerson from "./../../assets/githubPerson.png";
 import { AddOrganizationMemberForm } from "./forms/AddOrganizationMemberForm";
 import { useGetOrganizationMembers } from "../../api/query/organization-member/useGetOrganizationMembers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/select";
 import {
   OrganizationMemberPresenter,
   OrganizationMemberRole,
@@ -77,60 +84,33 @@ export const OrganizationMembersPage = () => {
                 />
                 <span className="h-[24px] my-auto w-[200px]">{member.username}</span>
                 {member.role == OrganizationMemberRole.OWNER ? (
-                  <div className="w-[150px]">
-                    <select
-                      className="text-[#232323] rounded-md w-[150px]"
-                      defaultValue={member.role}
-                      disabled={!hasPrivileges || member.role == OrganizationMemberRole.OWNER}
-                      onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                        const role = e.target.value;
-                        handleRoleChange(member, +role);
-                      }}
-                    >
-                      <option
-                        value={OrganizationMemberRole.OWNER}
-                        className={
-                          member.role == OrganizationMemberRole.OWNER
-                            ? "bg-[#0E7490] text-white "
-                            : ""
-                        }
-                      >
-                        Owner
-                      </option>
-                    </select>
+                  <div className="w-[150px] h-9 text-[#A2A2A2] rounded-md border px-3 py-2 text-sm my-auto">
+                    Owner
                   </div>
                 ) : (
-                  <div className="w-[150px]">
-                    <select
-                      className="text-[#232323] rounded-md w-[150px]"
-                      defaultValue={member.role}
-                      disabled={!hasPrivileges}
-                      onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                        const role = e.target.value;
-                        handleRoleChange(member, +role);
+                  <div className="w-[150px] my-auto">
+                    <Select
+                      onValueChange={async (value: string) => {
+                        const role = +value as OrganizationMemberRole;
+                        await handleRoleChange(member, +role);
+                        if (!isErrorChange) member.role = role;
                       }}
+                      defaultValue={member.role.toString()}
+                      disabled={!hasPrivileges}
+                      value={member.role.toString()}
                     >
-                      <option
-                        value={OrganizationMemberRole.MODERATOR}
-                        className={
-                          member.role == OrganizationMemberRole.MODERATOR
-                            ? "bg-[#0E7490] text-white"
-                            : ""
-                        }
-                      >
-                        Moderator
-                      </option>
-                      <option
-                        value={OrganizationMemberRole.MEMBER}
-                        className={
-                          member.role == OrganizationMemberRole.MEMBER
-                            ? "bg-[#0E7490] text-white"
-                            : ""
-                        }
-                      >
-                        Member
-                      </option>
-                    </select>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Member role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={OrganizationMemberRole.MODERATOR.toString()}>
+                          Moderator
+                        </SelectItem>
+                        <SelectItem value={OrganizationMemberRole.MEMBER.toString()}>
+                          Member
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
