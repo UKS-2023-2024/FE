@@ -6,6 +6,8 @@ import { useAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import { useCloseMilestone } from "../../api/mutations/milestone/useCloseMilestone";
 import { useReopenMilestone } from "../../api/mutations/milestone/useReopenMilestone";
+import CustomProgressBar from "../progressBar/progressBar";
+
 
 interface Props {
   milestone: Milestone;
@@ -16,6 +18,7 @@ export const MilestoneOverview = ({ milestone }: Props) => {
   const { mutateAsync: closeMilestone } = useCloseMilestone();
   const { mutateAsync: reopenMilestone } = useReopenMilestone();
 
+  console.log(milestone)
   const [, setSelectedMilestone] = useAtom(currentMilestoneAtom);
   const navigate = useNavigate();
 
@@ -44,25 +47,28 @@ export const MilestoneOverview = ({ milestone }: Props) => {
           <div>last edited...</div>
         </div>
       </div>
-      <div className="w-1/2 flex items-end gap-2">
-        <Button
-          className="bg-red-600 hover:bg-red-500 w-[70px]"
-          onClick={() => handleDeleteMilestone(milestone)}
-        >
-          Delete
-        </Button>
-        <Button className="w-[70px]" onClick={handleEditMilestone}>
-          Edit
-        </Button>
-        {milestone.closed ? (
-          <Button className="w-[80px]" onClick={handleReopenMilestone}>
-            Reopen
+      <div className="flex flex-col justify-between">
+        <CustomProgressBar completionPercentage={milestone.completionPercentage}></CustomProgressBar>
+        <div className="w-1/2 flex items-end gap-2">
+          <Button
+            className="bg-red-600 hover:bg-red-500 w-[70px]"
+            onClick={() => handleDeleteMilestone(milestone)}
+          >
+            Delete
           </Button>
-        ) : (
-          <Button className="w-[70px]" onClick={handleCloseMilestone}>
-            Close
+          <Button className="w-[70px]" onClick={handleEditMilestone}>
+            Edit
           </Button>
-        )}
+          {milestone.closed ? (
+            <Button className="w-[80px]" onClick={handleReopenMilestone}>
+              Reopen
+            </Button>
+          ) : (
+            <Button className="w-[70px]" onClick={handleCloseMilestone}>
+              Close
+            </Button>
+          )}
+        </div>
       </div>
       <div></div>
     </div>

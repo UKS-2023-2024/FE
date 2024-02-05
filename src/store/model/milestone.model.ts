@@ -5,4 +5,5 @@ export type Milestone = {
   description: string;
   repositoryId: string;
   closed: boolean;
+  completionPercentage: number
 };

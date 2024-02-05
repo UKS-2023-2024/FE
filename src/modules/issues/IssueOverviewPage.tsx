@@ -170,7 +170,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> added this issue to </span>
           <span className="text-white text-lg font-bold">
-            {event?.milestone.title} milestone
+            {event?.milestone?.title ?? ""} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -186,7 +186,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> removed this issue from </span>
           <span className="text-white text-lg font-bold">
-            {event?.milestone.title} milestone
+            {event?.milestone?.title ?? ""} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -200,7 +200,7 @@ export const IssueOverviewPage = () => {
     <div className="p-10">
       <div className="w-full flex flex-col">
         <div className="flex items-center gap-4 pt-4 pb-2">
-          <div className="text-3xl text-white">{issue?.title}</div>
+          <div className="text-3xl text-white">{issue?.title ?? ""}</div>
           <div className="text-3xl text-gray-500">#{issue?.number}</div>
         </div>
         <div className="flex gap-4 text-lg text-gray-500 pb-4">
@@ -285,7 +285,7 @@ export const IssueOverviewPage = () => {
             <FormControl fullWidth variant="standard">
               <Select
                 labelId="demo-simple-select-standard-label"
-                defaultValue={issue?.milestone.title}
+                defaultValue={issue?.milestone?.title ?? ""}
                 id="demo-simple-select-standard"
                 value={selectedMilestone}
                 onChange={handleMilestoneChange}
@@ -297,7 +297,7 @@ export const IssueOverviewPage = () => {
                     value={milestone.id}
                     className="w-full flex gap-3"
                   >
-                    <span>{milestone.title}</span>
+                    <span>{milestone.title ?? ""}</span>
                     {milestone.closed ? (
                       <span className="bg-red-600 text-white rounded-xl p-1">
                         closed
