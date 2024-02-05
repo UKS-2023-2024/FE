@@ -21,6 +21,9 @@ import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepo
 import { useAssignMilestoneToIssue } from "../../api/mutations/issue/useAssignMilestoneToIssue";
 import { useUnassignMilestoneFromIssue } from "../../api/mutations/issue/useUnassignMilestoneFromIssue";
 import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
+import { Button } from "../../components";
+import { useCloseIssue } from "../../api/mutations/issue/useCloseIssue";
+import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -39,6 +42,8 @@ export const IssueOverviewPage = () => {
   const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
   const { mutateAsync: unassignMilestoneFromIssue } =
     useUnassignMilestoneFromIssue();
+  const { mutateAsync: closeIssue } = useCloseIssue();
+  const { mutateAsync: reopenIssue } = useReopenIssue();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedMilestone, setSelectedMilestone] = React.useState(
@@ -110,6 +115,16 @@ export const IssueOverviewPage = () => {
       });
     }
 
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleCloseIssue = async () => {
+    await closeIssue(issue?.id ?? "");
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleReopenIssue = async () => {
+    await reopenIssue(issue?.id ?? "");
     queryClient.invalidateQueries(["repository-issue", id]);
   };
 
@@ -194,7 +209,9 @@ export const IssueOverviewPage = () => {
               Open
             </div>
           ) : (
-            <div>Closed</div>
+            <div className="w-[80px] flex justify-center rounded-3xl bg-red-600 text-white">
+              Closed
+            </div>
           )}
           <div>
             <span className="font-bold">
@@ -298,6 +315,11 @@ export const IssueOverviewPage = () => {
           <div className="border"></div>
         </div>
       </div>
+      {issue?.state === 0 ? (
+        <Button onClick={handleCloseIssue}>Close issue</Button>
+      ) : (
+        <Button onClick={handleReopenIssue}>Reopen issue</Button>
+      )}
     </div>
   );
 };
