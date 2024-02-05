@@ -1,5 +1,5 @@
 import { useToast } from "../../components/toast";
-import { RegisterUserParams } from "../../modules/auth/model/RegisterUserParams";
+import { RegisterUserParams } from "../../models/auth/RegisterUserParams";
 import { useAxios } from "../useAxios";
 import { useMutation } from "@tanstack/react-query";
 

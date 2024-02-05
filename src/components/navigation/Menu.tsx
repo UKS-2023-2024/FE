@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LoginForm } from "../../modules/auth/forms/LoginForm";
 import { Button } from "../button/Button";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { currentUserAtom, tokenAtom } from "../../store/store";
+import inbox from "./../../assets/inbox-mail.png";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../dropdownMenu";
 
 export const Menu = () => {
   const navigate = useNavigate();
@@ -14,10 +16,6 @@ export const Menu = () => {
 
   const handleRegisterClick = () => {
     navigate("/register");
-  };
-
-  const handleUserProfileClick = () => {
-    navigate("/profile");
   };
 
   const handleHomeClick = () => {
@@ -49,10 +47,21 @@ export const Menu = () => {
           </Button>
         </div>
       ) : (
-        <div>
-          <Button onClick={handleUserProfileClick} className="bg-transparent text-white">
-            {currentUser?.fullName}
-          </Button>
+        <div className="flex gap-2">
+          <img
+            src={inbox}
+            alt="star"
+            className="w-[25px] my-auto h-[25px] rounded-md cursor-pointer mr-2"
+            onClick={() => navigate("/notifications")}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-white focus:ring-0 focus:outline-none">
+              {currentUser?.fullName}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-800 text-white">
+              <DropdownMenuItem onClick={() => navigate("/settings")}>Settings</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={logout} className="w-20 bg-transparent text-white">
             Logout
           </Button>

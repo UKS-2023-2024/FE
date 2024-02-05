@@ -1,7 +1,7 @@
 import { RouteObject } from "react-router-dom";
 import App from "./App";
 import { RegisterPage } from "./modules/auth/RegisterPage";
-import { UserProfilePage } from "./modules/user/UserProfilePage";
+import { UserProfilePage } from "./modules/settings/SettingsProfilePage";
 import { HomePage } from "./modules/HomePage";
 import { CreateOrganizationPage } from "./modules/organization/CreateOrganizationPage";
 import { OrganizationPage } from "./modules/organization/OrganizationPage";
@@ -23,11 +23,16 @@ import { RepositoryOverviewBranchesPage } from "./modules/repository/branches/Re
 import { RepositoryMembersPage } from "./modules/repository/RepositoryMembersPage";
 import { RepositoryInviteAcceptPage } from "./modules/repository/RepositoryInviteAcceptPage";
 import { UsersThatStarredPage } from "./modules/repository/UsersThatStarredPage";
-import { CreateIssuePage } from "./modules/issue/CreateIssuePage";
-import { IssueOverviewPage } from "./modules/issue/IssueOverviewPage";
+import { CreateIssuePage } from "./modules/issues/CreateIssuePage";
+import { IssueOverviewPage } from "./modules/issues/IssueOverviewPage";
 import { OrganizationMembersPage } from "./modules/organization/OrganizationMembersPage";
 import { OrganizationInviteAcceptPage } from "./modules/organization/OrganizationInviteAcceptPage";
 import { AllOrganizationsPage } from "./modules/organization/AllOrganizationsPage";
+import { UsersWatchingPage } from "./modules/repository/UsersWatchingPage";
+import { SettingsNotifications } from "./modules/settings/SettingsNotifications";
+import { NotificationsPage } from "./modules/notifications/NotificationsPage";
+import { SettingsAccessPage } from "./modules/settings/SettingsAccessPage";
+import { SettingsPage } from "./modules/settings/SettingsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -43,12 +48,26 @@ export const routes: RouteObject[] = [
         element: <RegisterPage />,
       },
       {
-        path: `/profile`,
-        element: <UserProfilePage />,
-      },
-      {
         path: "/new-organization",
         element: <CreateOrganizationPage />,
+      },
+      {
+        path: "/settings",
+        element: <SettingsPage />,
+        children: [
+          {
+            path: `profile`,
+            element: <UserProfilePage />,
+          },
+          {
+            path: `access`,
+            element: <SettingsAccessPage />
+          },
+          {
+            path: `notifications`,
+            element: <SettingsNotifications />,
+          },
+        ]
       },
       {
         path: `/organizations/:name`,
@@ -130,6 +149,10 @@ export const routes: RouteObject[] = [
               },
             ],
           },
+          {
+            path: "watchers",
+            element: <UsersWatchingPage />,
+          },
         ],
       },
 
@@ -153,6 +176,11 @@ export const routes: RouteObject[] = [
         path: "/organizations",
         element: <AllOrganizationsPage />,
       },
+
+      {
+        path: `/notifications`,
+        element: <NotificationsPage />
+      }
     ],
   },
 ];

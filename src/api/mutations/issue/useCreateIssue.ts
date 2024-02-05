@@ -4,7 +4,7 @@ import { useToast } from "../../../components/toast";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../../store/store";
-import { CreateIssueParams } from "../../../modules/issue/model/CreateIssueParams";
+import { CreateIssueParams } from "../../../models/issues/CreateIssueParams";
 
 export const useCreateIssue = () => {
   const { axios } = useAxios();

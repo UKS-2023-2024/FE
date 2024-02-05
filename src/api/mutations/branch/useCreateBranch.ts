@@ -1,5 +1,5 @@
 import { useToast } from "../../../components/toast";
-import { CreateBranchParams } from "../../../modules/repository/branches/model/CreateBranchParams";
+import { CreateBranchParams } from "../../../models/repositories/branches/CreateBranchParams";
 import { useAxios } from "../../useAxios";
 import { useMutation } from "@tanstack/react-query";
 

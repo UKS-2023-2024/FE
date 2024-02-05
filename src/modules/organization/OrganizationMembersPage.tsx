@@ -3,15 +3,23 @@ import { Button } from "../../components/button/Button";
 import { useAtom } from "jotai";
 import { currentOrganizationAtom } from "../../store/store";
 import { cn } from "../../utils/cn";
-import githubPerson from "./../../../public/githubPerson.png";
+import githubPerson from "./../../assets/githubPerson.png";
 import { AddOrganizationMemberForm } from "./forms/AddOrganizationMemberForm";
 import { useGetOrganizationMembers } from "../../api/query/organization-member/useGetOrganizationMembers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/select";
 import {
   OrganizationMemberPresenter,
   OrganizationMemberRole,
 } from "../../store/model/organizationMember.model";
 import { useGetOrganizationMemberRole } from "../../api/query/organization-member/useGetOrganizationMemberRole";
 import { useRemoveOrganizationMember } from "../../api/mutations/organization-member/useRemoveOrganizationMember";
+import { useChangeOrganizationMemberRole } from "../../api/mutations/organization-member/useChangeOrganizationMemberRole";
 
 export const OrganizationMembersPage = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -20,7 +28,10 @@ export const OrganizationMembersPage = () => {
   const { data: userRole } = useGetOrganizationMemberRole(organization?.id ?? "");
   const { mutateAsync: removeOrganizationMember, isError: isErrorDelete } =
     useRemoveOrganizationMember();
-  const hasPrivileges = userRole == OrganizationMemberRole.OWNER;
+  const hasPrivileges =
+    userRole == OrganizationMemberRole.OWNER || userRole == OrganizationMemberRole.MODERATOR;
+  const { mutateAsync: changeOrganizationMemberRole, isError: isErrorChange } =
+    useChangeOrganizationMemberRole();
 
   const handleRemove = async (organizationMemberId: string) => {
     await removeOrganizationMember({
@@ -35,6 +46,17 @@ export const OrganizationMembersPage = () => {
         organizationMembers.splice(indexToRemove, 1);
       }
     }
+  };
+  const handleRoleChange = async (
+    organizationMember: OrganizationMemberPresenter,
+    role: OrganizationMemberRole
+  ) => {
+    await changeOrganizationMemberRole({
+      organizationId: organization?.id ?? "",
+      organizationMemberId: organizationMember.memberId,
+      organizationRole: role,
+    });
+    if (!isErrorChange) organizationMember.role = role;
   };
   return (
     <div className="w-full flex flex-col items-center pt-6">
@@ -61,34 +83,37 @@ export const OrganizationMembersPage = () => {
                   className="w-[50px] h-[50px] rounded-md"
                 />
                 <span className="h-[24px] my-auto w-[200px]">{member.username}</span>
-                <div className="w-[150px]">
-                  <select
-                    className="text-[#232323] rounded-md"
-                    defaultValue={member.role}
-                    disabled={!hasPrivileges}
-                  >
-                    <option
-                      value={OrganizationMemberRole.OWNER}
-                      className={
-                        member.role == OrganizationMemberRole.OWNER
-                          ? "bg-[#0E7490] text-white "
-                          : ""
-                      }
+                {member.role == OrganizationMemberRole.OWNER ? (
+                  <div className="w-[150px] h-9 text-[#A2A2A2] rounded-md border px-3 py-2 text-sm my-auto">
+                    Owner
+                  </div>
+                ) : (
+                  <div className="w-[150px] my-auto">
+                    <Select
+                      onValueChange={async (value: string) => {
+                        const role = +value as OrganizationMemberRole;
+                        await handleRoleChange(member, +role);
+                        if (!isErrorChange) member.role = role;
+                      }}
+                      defaultValue={member.role.toString()}
+                      disabled={!hasPrivileges}
+                      value={member.role.toString()}
                     >
-                      Owner
-                    </option>
-                    <option
-                      value={OrganizationMemberRole.MEMBER}
-                      className={
-                        member.role == OrganizationMemberRole.MEMBER
-                          ? "bg-[#0E7490] text-white"
-                          : ""
-                      }
-                    >
-                      Member
-                    </option>
-                  </select>
-                </div>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Member role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={OrganizationMemberRole.MODERATOR.toString()}>
+                          Moderator
+                        </SelectItem>
+                        <SelectItem value={OrganizationMemberRole.MEMBER.toString()}>
+                          Member
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {hasPrivileges && (
                   <Button
                     className={cn(
@@ -98,7 +123,6 @@ export const OrganizationMembersPage = () => {
                         : "bg-gray-500 hover:bg-gray-500 cursor-default"
                     )}
                     onClick={() => {
-                      console.log(member.memberId);
                       handleRemove(member.memberId);
                     }}
                     disabled={false}

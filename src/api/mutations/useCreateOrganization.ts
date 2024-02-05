@@ -1,5 +1,5 @@
 import { useToast } from "../../components/toast";
-import { CreateOrganizationParams } from "../../modules/organization/model/CreateOrganizationParams";
+import { CreateOrganizationParams } from "../../models/organization/CreateOrganizationParams";
 import { useAxios } from "../useAxios";
 import { useMutation } from "@tanstack/react-query";
 

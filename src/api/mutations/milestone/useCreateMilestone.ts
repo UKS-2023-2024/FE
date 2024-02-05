@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAxios } from "../../useAxios";
 import { useToast } from "../../../components/toast";
-import { CreateMilestoneParams } from "../../../modules/milestone/model/CreateMilestoneParams";
+import { CreateMilestoneParams } from "../../../models/milestones/CreateMilestoneParams";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../../store/store";

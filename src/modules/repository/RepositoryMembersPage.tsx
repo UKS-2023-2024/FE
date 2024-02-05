@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { AddRepositoryMemberForm } from "./forms/AddRepositoryMemberForm";
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
@@ -8,8 +8,15 @@ import {
   RepositoryMemberPresenter,
   RepositoryMemberRole,
 } from "../../store/model/repositoryMember.model";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/select";
 import { cn } from "../../utils/cn";
-import githubPerson from "./../../../public/githubPerson.png";
+import githubPerson from "./../../assets/githubPerson.png";
 import { useGetRepositoryMemberRole } from "../../api/query/repository-member/useGetRepositoryMemberRole";
 import { useRemoveRepositoryMember } from "../../api/mutations/repository-member/useRemoveRepositoryMember";
 import { useChangeRepositoryMemberRole } from "../../api/mutations/repository-member/useChangeRepositoryMemberRole";
@@ -70,45 +77,33 @@ export const RepositoryMembersPage = () => {
                   className="w-[50px] h-[50px] rounded-md"
                 />
                 <span className="h-[24px] my-auto w-[200px]">{member.username}</span>
-                <div className="w-[150px]">
-                  <select
-                    className="text-[#232323] rounded-md"
-                    defaultValue={member.role}
-                    disabled={!hasPrivileges}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                      const role = e.target.value;
-                      handleRoleChange(member.id, +role);
-                      if (!isErrorChange) member.role = +role;
-                    }}
-                  >
-                    <option
-                      value={RepositoryMemberRole.ADMIN}
-                      className={
-                        member.role == RepositoryMemberRole.ADMIN ? "bg-[#0E7490] text-white" : ""
-                      }
+                {member.role == RepositoryMemberRole.OWNER ? (
+                  <div className="w-[150px] h-9 text-[#A2A2A2] rounded-md border px-3 py-2 text-sm my-auto">
+                    Owner
+                  </div>
+                ) : (
+                  <div className="w-[150px] my-auto">
+                    <Select
+                      onValueChange={async (value: string) => {
+                        const role = +value as RepositoryMemberRole;
+                        await handleRoleChange(member.id, +role);
+                        if (!isErrorChange) member.role = role;
+                      }}
+                      defaultValue={member.role.toString()}
+                      disabled={!hasPrivileges}
+                      value={member.role.toString()}
                     >
-                      Admin
-                    </option>
-                    <option
-                      value={RepositoryMemberRole.OWNER}
-                      className={
-                        member.role == RepositoryMemberRole.OWNER ? "bg-[#0E7490] text-white " : ""
-                      }
-                    >
-                      Owner
-                    </option>
-                    <option
-                      value={RepositoryMemberRole.CONTRIBUTOR}
-                      className={
-                        member.role == RepositoryMemberRole.CONTRIBUTOR
-                          ? "bg-[#0E7490] text-white"
-                          : ""
-                      }
-                    >
-                      Contributor
-                    </option>
-                  </select>
-                </div>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Member role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={RepositoryMemberRole.READ.toString()}>Read</SelectItem>
+                        <SelectItem value={RepositoryMemberRole.WRITE.toString()}>Write</SelectItem>
+                        <SelectItem value={RepositoryMemberRole.ADMIN.toString()}>Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 {hasPrivileges && (
                   <Button
                     className={cn(
@@ -120,7 +115,6 @@ export const RepositoryMembersPage = () => {
                     onClick={() => {
                       handleRemove(member.id);
                     }}
-                    disabled
                   >
                     Remove
                   </Button>

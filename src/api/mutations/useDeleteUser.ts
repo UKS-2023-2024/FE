@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useToast } from "../../components/toast";
-import { UpdateUserParams } from "../../modules/user/model/UpdateUserParams";
+import { UpdateUserParams } from "../../models/settings/UpdateUserParams";
 import { useGetCurrentUser } from "../query/useGetCurrentUser";
 import { useAxios } from "../useAxios";
 import { useMutation } from "@tanstack/react-query";
