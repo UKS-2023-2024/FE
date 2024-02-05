@@ -70,7 +70,7 @@ export const IssueOverviewPage = () => {
       description: issue?.description ?? "",
       repositoryId: issue?.repositoryId ?? "",
       labelsIds: issue?.labels ?? [],
-      milestoneId: issue?.milestone,
+      milestoneId: issue?.milestone.id,
       state: issue?.state ?? -1,
       number: issue?.number ?? -1,
       assigneesIds: assigneeIds ?? [],
