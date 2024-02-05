@@ -19,6 +19,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Event } from "../../store/model/event.model";
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
 import { useAssignMilestoneToIssue } from "../../api/mutations/issue/useAssignMilestoneToIssue";
+import { useUnassignMilestoneFromIssue } from "../../api/mutations/issue/useUnassignMilestoneFromIssue";
+import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -31,9 +33,12 @@ export const IssueOverviewPage = () => {
   );
   const { data: repositoryMilestones } =
     useGetRepositoryMilestones(selectedRepository);
+  const { data: issueEvents } = useGetIssueEvents(id ?? "");
 
   const { mutateAsync: assignIssueToUser } = useAssignIssueToUser();
   const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
+  const { mutateAsync: unassignMilestoneFromIssue } =
+    useUnassignMilestoneFromIssue();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedMilestone, setSelectedMilestone] = React.useState(
@@ -65,7 +70,7 @@ export const IssueOverviewPage = () => {
       description: issue?.description ?? "",
       repositoryId: issue?.repositoryId ?? "",
       labelsIds: issue?.labels ?? [],
-      milestoneId: issue?.milestone,
+      milestoneId: issue?.milestone.id,
       state: issue?.state ?? -1,
       number: issue?.number ?? -1,
       assigneesIds: assigneeIds ?? [],
@@ -79,17 +84,32 @@ export const IssueOverviewPage = () => {
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
     setSelectedMilestone(event.target.value);
-    await assignMilestoneToIssue({
-      id: issue?.id ?? "",
-      title: issue?.title ?? "",
-      description: issue?.description ?? "",
-      repositoryId: issue?.repositoryId ?? "",
-      labelsIds: issue?.labels ?? [],
-      milestoneId: event.target.value,
-      state: issue?.state ?? -1,
-      number: issue?.number ?? -1,
-      assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
-    });
+    if (issue?.milestone) {
+      await unassignMilestoneFromIssue({
+        id: issue?.id ?? "",
+        title: issue?.title ?? "",
+        description: issue?.description ?? "",
+        repositoryId: issue?.repositoryId ?? "",
+        labelsIds: issue?.labels ?? [],
+        milestoneId: event.target.value,
+        state: issue?.state ?? -1,
+        number: issue?.number ?? -1,
+        assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+      });
+    } else {
+      await assignMilestoneToIssue({
+        id: issue?.id ?? "",
+        title: issue?.title ?? "",
+        description: issue?.description ?? "",
+        repositoryId: issue?.repositoryId ?? "",
+        labelsIds: issue?.labels ?? [],
+        milestoneId: event.target.value,
+        state: issue?.state ?? -1,
+        number: issue?.number ?? -1,
+        assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+      });
+    }
+
     queryClient.invalidateQueries(["repository-issue", id]);
   };
 
@@ -135,7 +155,23 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> added this issue to </span>
           <span className="text-white text-lg font-bold">
-            {issue?.milestone.title} milestone
+            {event?.milestone.title} milestone
+          </span>
+          <span className="text-gray-500">
+            {" "}
+            on {formatDate(event.createdAt)}
+          </span>
+        </div>
+      );
+    if (event.eventType === 5)
+      return (
+        <div>
+          <span className="text-white text-lg font-bold">
+            {event.creator.username}{" "}
+          </span>
+          <span className="text-gray-500"> removed this issue from </span>
+          <span className="text-white text-lg font-bold">
+            {event?.milestone.title} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -173,7 +209,7 @@ export const IssueOverviewPage = () => {
 
       <div className="flex">
         <div className="w-[70%] flex flex-col pl-14 ">
-          {issue?.events.map((event) => (
+          {issueEvents?.map((event) => (
             <div className="p-4">{constructEventMessage(event)}</div>
           ))}
         </div>
@@ -232,6 +268,7 @@ export const IssueOverviewPage = () => {
             <FormControl fullWidth variant="standard">
               <Select
                 labelId="demo-simple-select-standard-label"
+                defaultValue={issue?.milestone.title}
                 id="demo-simple-select-standard"
                 value={selectedMilestone}
                 onChange={handleMilestoneChange}

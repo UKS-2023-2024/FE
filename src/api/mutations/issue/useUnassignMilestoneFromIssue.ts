@@ -1,20 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
+import { UpdateIssueParams } from "../../../modules/issue/model/UpdateIssueParams";
 import { useAxios } from "../../useAxios";
 import { useToast } from "../../../components/toast";
-import { useNavigate } from "react-router-dom";
-import { useAtom } from "jotai";
-import { currentRepositoryAtom } from "../../../store/store";
-import { UpdateIssueParams } from "../../../models/issues/UpdateIssueParams";
 
-export const useAssignMilestoneToIssue = () => {
+export const useUnassignMilestoneFromIssue = () => {
   const { axios } = useAxios();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [selectedRepository] = useAtom(currentRepositoryAtom);
 
   return useMutation({
     mutationFn: (params: UpdateIssueParams) =>
-      axios.post(`/issues/milestone/update`, params).then((res) => res.data),
+      axios
+        .post(`/issues/unassign/milestone/update`, params)
+        .then((res) => res.data),
     onSuccess: () => {
       toast({
         title: "Issue successfully updated!",
