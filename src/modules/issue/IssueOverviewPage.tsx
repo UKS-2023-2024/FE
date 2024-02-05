@@ -84,7 +84,6 @@ export const IssueOverviewPage = () => {
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
     setSelectedMilestone(event.target.value);
-
     if (issue?.milestone) {
       await unassignMilestoneFromIssue({
         id: issue?.id ?? "",
@@ -156,7 +155,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> added this issue to </span>
           <span className="text-white text-lg font-bold">
-            {issue?.milestone.title} milestone
+            {event?.milestone.title} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -172,7 +171,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> removed this issue from </span>
           <span className="text-white text-lg font-bold">
-            {issue?.milestone.title} milestone
+            {event?.milestone.title} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -210,7 +209,7 @@ export const IssueOverviewPage = () => {
 
       <div className="flex">
         <div className="w-[70%] flex flex-col pl-14 ">
-          {issue?.events.map((event) => (
+          {issueEvents?.map((event) => (
             <div className="p-4">{constructEventMessage(event)}</div>
           ))}
         </div>
@@ -269,6 +268,7 @@ export const IssueOverviewPage = () => {
             <FormControl fullWidth variant="standard">
               <Select
                 labelId="demo-simple-select-standard-label"
+                defaultValue={issue?.milestone.title}
                 id="demo-simple-select-standard"
                 value={selectedMilestone}
                 onChange={handleMilestoneChange}
