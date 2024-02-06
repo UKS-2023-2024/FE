@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import { useCloseMilestone } from "../../api/mutations/milestone/useCloseMilestone";
 import { useReopenMilestone } from "../../api/mutations/milestone/useReopenMilestone";
-import CustomProgressBar from "../progressBar/progressBar";
+import ProgressBar from "@ramonak/react-progress-bar";
 
 
 interface Props {
@@ -18,7 +18,6 @@ export const MilestoneOverview = ({ milestone }: Props) => {
   const { mutateAsync: closeMilestone } = useCloseMilestone();
   const { mutateAsync: reopenMilestone } = useReopenMilestone();
 
-  console.log(milestone)
   const [, setSelectedMilestone] = useAtom(currentMilestoneAtom);
   const navigate = useNavigate();
 
@@ -48,7 +47,7 @@ export const MilestoneOverview = ({ milestone }: Props) => {
         </div>
       </div>
       <div className="flex flex-col justify-between">
-        <CustomProgressBar completionPercentage={milestone.completionPercentage}></CustomProgressBar>
+      <ProgressBar completed={milestone.completionPercentage} bgColor='green'/>
         <div className="w-1/2 flex items-end gap-2">
           <Button
             className="bg-red-600 hover:bg-red-500 w-[70px]"
