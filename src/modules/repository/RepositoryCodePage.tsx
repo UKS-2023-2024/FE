@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { useGetFileTree } from "../../api/query/files/useGetFileTree";
 import { Select, SelectItem, SelectContent, SelectTrigger } from "../../components/select/Select";
+import { FilePreview } from "./files/FilePreview";
 
 export const RepositoryCodePage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -43,8 +44,9 @@ export const RepositoryCodePage = () => {
   const [pullRequestsChecked, setPullRequestsChecked] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | undefined>(undefined)
   const [path, setPath] = useState("/")
+  const [filePath, setFilePath] = useState<string | undefined>(undefined)
   const { data: fileTree } = useGetFileTree(selectedBranch?.id, path)
-  
+
   useEffect(() => {
     setIssuesChecked(isUserWatchingRepository === 2 || isUserWatchingRepository === 4);
     setPullRequestsChecked(isUserWatchingRepository === 3 || isUserWatchingRepository === 4);
@@ -115,8 +117,31 @@ export const RepositoryCodePage = () => {
   }, [allBranches, defaultBranch])
 
   const onSelectValueChange = (val: string) => {
-    const branch = allBranches.find(b => b.id === val);
+    const branch = branches.find(b => b.id === val);
     setSelectedBranch(branch);
+    setPath("/")
+  }
+
+  const handleBackFolderClick = () => {
+    setPath(prevPath => {
+      const lastSlashIndex = prevPath.lastIndexOf('/');
+      if (lastSlashIndex !== -1) {
+        const newLastSlashIndex = prevPath.slice(0, lastSlashIndex - 1).lastIndexOf('/');
+        return newLastSlashIndex !== -1 ? prevPath.slice(0, newLastSlashIndex + 1) : '/';
+      } else {
+        return '/';
+      }
+    })
+  }
+
+  const handleFileClick = (node: any) => {
+    if (node.isFolder) {
+      setPath(`${path}${node.name}/`)
+      return;
+    }
+
+    setFilePath(`${path}${node.name}`)
+    setPath(`${path}${node.name}/`)
   }
 
   return (
@@ -133,7 +158,7 @@ export const RepositoryCodePage = () => {
               <SelectContent>
                 {
                   branches.map(b => (
-                    <SelectItem value={b.id}>
+                    <SelectItem key={b.id} value={b.id}>
                       <div className="flex h-full justify-between w-[200px]">
                         <div>{b.name}</div>
                         {
@@ -314,31 +339,26 @@ export const RepositoryCodePage = () => {
         </div>
       </div>
 
-      <div className="w-full mt-10">
-        { path != "/" &&
-        <div key="back" className="flex w-3/4 mx-auto">
+      <div className="w-full mt-10 flex flex-col gap-1">
+        {path != "/" &&
+          <div key="back" className="flex w-3/4 mx-auto">
             <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
               <FontAwesomeIcon icon={faFolder} className="icon white" />
-              <div className="ml-3 cursor-pointer" onClick={() => setPath(prevPath => {
-                  const lastSlashIndex = prevPath.lastIndexOf('/');
-                  if (lastSlashIndex !== -1) {
-                    const newLastSlashIndex = prevPath.slice(0, lastSlashIndex - 1).lastIndexOf('/');
-                    return newLastSlashIndex !== -1 ? prevPath.slice(0, newLastSlashIndex + 1) : '/';
-                  } else {
-                    return '/';
-                  }
-              })}>...</div>
+              <div className="ml-3 cursor-pointer" onClick={handleBackFolderClick}>...</div>
             </div>
-        </div>
+          </div>
         }
-        {fileTree.map((node) => (
+        {(!filePath || !path.includes(filePath ?? "")) && fileTree.map((node: any) => (
           <div key={node.name} className="flex w-3/4 mx-auto">
             <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
               <FontAwesomeIcon icon={node.isFolder ? faFolder : faFile} className="icon white" />
-              <div className="ml-3 cursor-pointer" onClick={() => {setPath(`${path}${node.name}/`)}}>{node.name}</div>
+              <div className="ml-3 cursor-pointer" onClick={() => handleFileClick(node)}>{node.name}</div>
             </div>
           </div>
         ))}
+        {
+          !!filePath && path.includes(filePath ?? "") && <FilePreview branchId={selectedBranch?.id} path={filePath} />
+        }
       </div>
     </div >
   );
