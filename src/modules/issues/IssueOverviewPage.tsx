@@ -27,7 +27,6 @@ import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
 import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
 
-
 export const IssueOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
@@ -294,6 +293,9 @@ export const IssueOverviewPage = () => {
                 onChange={handleMilestoneChange}
                 className="bg-white"
               >
+                <MenuItem value={""} className="w-full flex gap-3">
+                  <span>Clear</span>
+                </MenuItem>
                 {repositoryMilestones.map((milestone) => (
                   <MenuItem
                     key={milestone.id}
@@ -315,9 +317,11 @@ export const IssueOverviewPage = () => {
               </Select>
             </FormControl>
             <div className="mt-2">
-            { selectedMilestone && 
-              <MilestoneProgressBar milestoneId={selectedMilestone}></MilestoneProgressBar>
-            }
+              {selectedMilestone && (
+                <MilestoneProgressBar
+                  milestoneId={selectedMilestone}
+                ></MilestoneProgressBar>
+              )}
             </div>
           </div>
           <div className="mt-5 border"></div>
