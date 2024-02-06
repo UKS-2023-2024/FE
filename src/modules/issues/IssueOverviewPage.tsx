@@ -26,6 +26,7 @@ import { useCloseIssue } from "../../api/mutations/issue/useCloseIssue";
 import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
 import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
+import { useAddIssueComment } from "../../api/mutations/comment/useAddIssueComment";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -46,11 +47,13 @@ export const IssueOverviewPage = () => {
     useUnassignMilestoneFromIssue();
   const { mutateAsync: closeIssue } = useCloseIssue();
   const { mutateAsync: reopenIssue } = useReopenIssue();
+  const { mutateAsync: addComment } = useAddIssueComment();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedMilestone, setSelectedMilestone] = React.useState(
     issue?.milestone?.id ?? ""
   );
+  const [currentComment, setCurrentComment] = React.useState("");
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -127,6 +130,14 @@ export const IssueOverviewPage = () => {
 
   const handleReopenIssue = async () => {
     await reopenIssue(issue?.id ?? "");
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleAddComment = async () => {
+    await addComment({
+      taskId: issue?.id ?? "",
+      content: currentComment,
+    });
     queryClient.invalidateQueries(["repository-issue", id]);
   };
 
@@ -326,6 +337,31 @@ export const IssueOverviewPage = () => {
           </div>
           <div className="mt-5 border"></div>
         </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-white text-xl">Leave comment</span>
+        <textarea
+          name=""
+          onChange={(e) => setCurrentComment(e.target.value)}
+        ></textarea>
+        <div className="flex justify-end">
+          <Button onClick={handleAddComment} className="w-[150px]">
+            Comment
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-white text-xl">Comments</span>
+        {issue?.comments.map((comment) => (
+          <div className="text-white text border rounded-xl">
+            <div className="bg-blue-900 rounded-xl p-2">
+              {comment.creator.username} added this at{" "}
+              {formatDate(comment.createdAt)}
+            </div>
+            <div className="text-xl p-4">{comment.content}</div>
+          </div>
+        ))}
+        <div></div>
       </div>
       {issue?.state === 0 ? (
         <Button onClick={handleCloseIssue}>Close issue</Button>
