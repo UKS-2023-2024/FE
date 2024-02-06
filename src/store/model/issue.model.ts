@@ -1,3 +1,4 @@
+import { Comment } from "./comment.model";
 import { Event } from "./event.model";
 
 export type Issue = {
@@ -11,4 +12,5 @@ export type Issue = {
   milestone: any;
   number: number;
   state: number;
+  comments: Comment[];
 };
