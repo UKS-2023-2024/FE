@@ -24,6 +24,9 @@ import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
 import { Button } from "../../components";
 import { useCloseIssue } from "../../api/mutations/issue/useCloseIssue";
 import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
+import CustomProgressBar from "../../components/progressBar/progressBar";
+import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
+
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -47,7 +50,11 @@ export const IssueOverviewPage = () => {
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedMilestone, setSelectedMilestone] = React.useState(
-    issue?.milestone?.id
+    issue?.milestone?.id ?? ""
+  );
+
+  const { data: completionPercentage } = useGetMilestoneCompletionPercentage(
+    selectedMilestone ?? ""
   );
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -279,7 +286,7 @@ export const IssueOverviewPage = () => {
           <div className="border"></div>
 
           <div>
-            <div className="flex gap-2 pt-10">
+            <div className="flex gap-2 mt-4">
               <div className="text-gray-600">Milestone</div>
             </div>
             <FormControl fullWidth variant="standard">
@@ -311,8 +318,13 @@ export const IssueOverviewPage = () => {
                 ))}
               </Select>
             </FormControl>
+            <div className="mt-2">
+            { selectedMilestone && 
+              <CustomProgressBar completionPercentage={completionPercentage}></CustomProgressBar>
+            }
+            </div>
           </div>
-          <div className="border"></div>
+          <div className="mt-5 border"></div>
         </div>
       </div>
       {issue?.state === 0 ? (
