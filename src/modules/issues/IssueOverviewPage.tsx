@@ -24,6 +24,9 @@ import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
 import { Button } from "../../components";
 import { useCloseIssue } from "../../api/mutations/issue/useCloseIssue";
 import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
+import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
+import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
+
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -47,7 +50,7 @@ export const IssueOverviewPage = () => {
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedMilestone, setSelectedMilestone] = React.useState(
-    issue?.milestone?.id
+    issue?.milestone?.id ?? ""
   );
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -170,7 +173,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> added this issue to </span>
           <span className="text-white text-lg font-bold">
-            {event?.milestone.title} milestone
+            {event?.milestone?.title ?? ""} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -186,7 +189,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> removed this issue from </span>
           <span className="text-white text-lg font-bold">
-            {event?.milestone.title} milestone
+            {event?.milestone?.title ?? ""} milestone
           </span>
           <span className="text-gray-500">
             {" "}
@@ -200,7 +203,7 @@ export const IssueOverviewPage = () => {
     <div className="p-10">
       <div className="w-full flex flex-col">
         <div className="flex items-center gap-4 pt-4 pb-2">
-          <div className="text-3xl text-white">{issue?.title}</div>
+          <div className="text-3xl text-white">{issue?.title ?? ""}</div>
           <div className="text-3xl text-gray-500">#{issue?.number}</div>
         </div>
         <div className="flex gap-4 text-lg text-gray-500 pb-4">
@@ -279,13 +282,13 @@ export const IssueOverviewPage = () => {
           <div className="border"></div>
 
           <div>
-            <div className="flex gap-2 pt-10">
+            <div className="flex gap-2 mt-4">
               <div className="text-gray-600">Milestone</div>
             </div>
             <FormControl fullWidth variant="standard">
               <Select
                 labelId="demo-simple-select-standard-label"
-                defaultValue={issue?.milestone.title}
+                defaultValue={issue?.milestone?.title ?? ""}
                 id="demo-simple-select-standard"
                 value={selectedMilestone}
                 onChange={handleMilestoneChange}
@@ -297,7 +300,7 @@ export const IssueOverviewPage = () => {
                     value={milestone.id}
                     className="w-full flex gap-3"
                   >
-                    <span>{milestone.title}</span>
+                    <span>{milestone.title ?? ""}</span>
                     {milestone.closed ? (
                       <span className="bg-red-600 text-white rounded-xl p-1">
                         closed
@@ -311,8 +314,13 @@ export const IssueOverviewPage = () => {
                 ))}
               </Select>
             </FormControl>
+            <div className="mt-2">
+            { selectedMilestone && 
+              <MilestoneProgressBar milestoneId={selectedMilestone}></MilestoneProgressBar>
+            }
+            </div>
           </div>
-          <div className="border"></div>
+          <div className="mt-5 border"></div>
         </div>
       </div>
       {issue?.state === 0 ? (
