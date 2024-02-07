@@ -1,11 +1,14 @@
 import { Issue } from "./issue.model";
+import { Reaction } from "./reaction.model";
 import { User } from "./user.model";
 
 export type Comment = {
+  id: string;
   creator: User;
   creatorId: string;
   content: string;
   taskId: string;
-  Task: Issue;
+  task: Issue;
   createdAt: Date;
+  reactions: Reaction[];
 };
