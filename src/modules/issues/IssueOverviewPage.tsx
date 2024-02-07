@@ -6,7 +6,7 @@ import { currentRepositoryAtom } from "../../store/store";
 import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
-import { PlusIcon, Trash2 } from "lucide-react";
+import { PlusIcon, Trash2, SmilePlus, SmilePlusIcon } from "lucide-react";
 import React from "react";
 import {
   FormControl,
@@ -27,6 +27,10 @@ import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
 import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
 import { useAddIssueComment } from "../../api/mutations/comment/useAddIssueComment";
+import EmojiPicker from "emoji-picker-react";
+import { useAddReaction } from "../../api/mutations/reaction/useAddReaction";
+import { Reaction } from "../../store/model/reaction.model";
+import { Comment } from "../../store/model/comment.model";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -48,19 +52,38 @@ export const IssueOverviewPage = () => {
   const { mutateAsync: closeIssue } = useCloseIssue();
   const { mutateAsync: reopenIssue } = useReopenIssue();
   const { mutateAsync: addComment } = useAddIssueComment();
+  const { mutateAsync: addReaction } = useAddReaction();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(
+    null
+  );
+  const [reactionPopper, setReactionPopper] =
+    React.useState<null | HTMLElement>(null);
+
   const [selectedMilestone, setSelectedMilestone] = React.useState(
     issue?.milestone?.id ?? ""
   );
   const [currentComment, setCurrentComment] = React.useState("");
+  const [displayedReactions, setDisplayedReactions] = React.useState<string[]>(
+    []
+  );
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
+  const handleOpenEmojiPicker = (event: React.MouseEvent<HTMLElement>) => {
+    setEmojiPopper(emojiPopper ? null : event.currentTarget);
+  };
+
   const open = Boolean(anchorEl);
+  const emojiOpen = Boolean(emojiPopper);
+  const reactionsOpen = Boolean(reactionPopper);
+
   const popperId = open ? "simple-popper" : undefined;
+  const emojiPopperId = emojiOpen ? "simple-popper" : undefined;
+  const reactionsPopperId = reactionsOpen ? "simple-popper" : undefined;
 
   const handleAssignUserToIssue = async (
     member: RepositoryMemberPresenter,
@@ -139,6 +162,39 @@ export const IssueOverviewPage = () => {
       content: currentComment,
     });
     queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleEmojiClicked = async (event, commentId: string) => {
+    await addReaction({
+      commentId,
+      emojiCode: event.unified,
+    });
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const getUniqueValues = (reactions: Reaction[]): Reaction[] => {
+    const seenReactions = new Set<string>();
+    return reactions.filter((reaction) => {
+      if (!seenReactions.has(reaction.emojiCode)) {
+        seenReactions.add(reaction.emojiCode);
+        return true;
+      }
+      return false;
+    });
+  };
+
+  const displayUsersWithReaction = (
+    reaction: Reaction,
+    comment: Comment,
+    event
+  ) => {
+    const reactions = comment.reactions.filter(
+      (r) => r.emojiCode === reaction.emojiCode
+    );
+    const usernames = reactions?.map((r) => r.creator.username);
+    setDisplayedReactions(usernames);
+    console.log("evnt", event);
+    setReactionPopper(reactionPopper ? null : event.currentTarget);
   };
 
   const constructEventMessage = (event: Event) => {
@@ -358,7 +414,48 @@ export const IssueOverviewPage = () => {
               {comment.creator.username} added this at{" "}
               {formatDate(comment.createdAt)}
             </div>
-            <div className="text-xl p-4">{comment.content}</div>
+            <div className="p-2">
+              <div className="text-xl p-4">{comment.content}</div>
+              <div className="flex gap-4">
+                {getUniqueValues(comment.reactions).map(
+                  (reaction: Reaction) => (
+                    <>
+                      <div
+                        onClick={(e) =>
+                          displayUsersWithReaction(reaction, comment, e)
+                        }
+                      >
+                        {String.fromCodePoint(
+                          parseInt(`0x${reaction.emojiCode}`)
+                        )}
+                      </div>
+                      <Popper
+                        className="bg-white p-4 flex flex-col"
+                        id={reactionsPopperId}
+                        open={reactionsOpen}
+                        anchorEl={reactionPopper}
+                      >
+                        {displayedReactions.map((reaction) => (
+                          <div>{reaction}</div>
+                        ))}
+                      </Popper>
+                    </>
+                  )
+                )}
+              </div>
+              <div className="flex justify-end pr-6">
+                <SmilePlusIcon onClick={handleOpenEmojiPicker}></SmilePlusIcon>
+                <Popper
+                  id={emojiPopperId}
+                  open={emojiOpen}
+                  anchorEl={emojiPopper}
+                >
+                  <EmojiPicker
+                    onEmojiClick={(e) => handleEmojiClicked(e, comment.id)}
+                  />
+                </Popper>
+              </div>
+            </div>
           </div>
         ))}
         <div></div>
