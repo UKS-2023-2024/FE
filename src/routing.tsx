@@ -33,6 +33,8 @@ import { SettingsNotifications } from "./modules/settings/SettingsNotifications"
 import { NotificationsPage } from "./modules/notifications/NotificationsPage";
 import { SettingsAccessPage } from "./modules/settings/SettingsAccessPage";
 import { SettingsPage } from "./modules/settings/SettingsPage";
+import { RepositoryPullRequestPage } from "./modules/repository/RepositoryPullRequestPage";
+import { CreatePullRequestPage } from "./modules/pull-requests/CreatePullRequestPage";
 
 export const routes: RouteObject[] = [
   {
@@ -61,13 +63,13 @@ export const routes: RouteObject[] = [
           },
           {
             path: `access`,
-            element: <SettingsAccessPage />
+            element: <SettingsAccessPage />,
           },
           {
             path: `notifications`,
             element: <SettingsNotifications />,
           },
-        ]
+        ],
       },
       {
         path: `/organizations/:name`,
@@ -106,6 +108,14 @@ export const routes: RouteObject[] = [
           {
             path: "issues/:id",
             element: <IssueOverviewPage />,
+          },
+          {
+            path: "pull-requests",
+            element: <RepositoryPullRequestPage />,
+          },
+          {
+            path: "pull-requests/new",
+            element: <CreatePullRequestPage />,
           },
           {
             path: "milestones",
@@ -179,8 +189,8 @@ export const routes: RouteObject[] = [
 
       {
         path: `/notifications`,
-        element: <NotificationsPage />
-      }
+        element: <NotificationsPage />,
+      },
     ],
   },
 ];
