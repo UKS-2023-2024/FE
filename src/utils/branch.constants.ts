@@ -12,8 +12,10 @@ export const RENAME_BRANCH_DEFAULT_VALUES = {
 
 export const CREATE_BRANCH_VALIDATION_SCHEMA = yup.object({
   name: yup.string().required("Name is required"),
+  createdFromBranch: yup.string().required("Branch is required"),
 });
 
 export const CREATE_BRANCH_DEFAULT_VALUES = {
   name: "",
+  createdFromBranchId: ""
 };

@@ -17,8 +17,8 @@ import eye from "./../../assets/eye.png";
 import { useUnwatchRepository } from "../../api/mutations/repository/useUnwatchRepository";
 import { useFindAllUsersWatchingRepository } from "../../api/query/repository/useFindAllUsersWatchingRepository";
 import check from "./../../assets/check.png";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFile, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFile, faFolder } from "@fortawesome/free-solid-svg-icons";
 import { useGetFileTree } from "../../api/query/files/useGetFileTree";
 import { Select, SelectItem, SelectContent, SelectTrigger } from "../../components/select/Select";
 import { FilePreview } from "./files/FilePreview";
@@ -42,10 +42,10 @@ export const RepositoryCodePage = () => {
   const [showDropdown3, setShowDropdown3] = useState(false);
   const [issuesChecked, setIssuesChecked] = useState(false);
   const [pullRequestsChecked, setPullRequestsChecked] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | undefined>(undefined)
-  const [path, setPath] = useState("/")
-  const [filePath, setFilePath] = useState<string | undefined>(undefined)
-  const { data: fileTree } = useGetFileTree(selectedBranch?.id, path)
+  const [selectedBranch, setSelectedBranch] = useState<Branch | undefined>(undefined);
+  const [path, setPath] = useState("/");
+  const [filePath, setFilePath] = useState<string | undefined>(undefined);
+  const { data: fileTree } = useGetFileTree(selectedBranch?.id, path);
 
   useEffect(() => {
     setIssuesChecked(isUserWatchingRepository === 2 || isUserWatchingRepository === 4);
@@ -53,9 +53,9 @@ export const RepositoryCodePage = () => {
   }, [isUserWatchingRepository]);
 
   useEffect(() => {
-    if (selectedBranch) return
+    if (selectedBranch) return;
     setSelectedBranch(defaultBranch);
-  }, [defaultBranch])
+  }, [defaultBranch]);
 
   const handleStarring = () => {
     if (didUserStarRepository) {
@@ -111,67 +111,67 @@ export const RepositoryCodePage = () => {
   };
 
   const branches = useMemo(() => {
-    const defaultBranchCopy = defaultBranch ? [defaultBranch] : []
-    const allBranchesCopy = allBranches ?? []
+    const defaultBranchCopy = defaultBranch ? [defaultBranch] : [];
+    const allBranchesCopy = allBranches ?? [];
     return [...defaultBranchCopy, ...allBranchesCopy];
-  }, [allBranches, defaultBranch])
+  }, [allBranches, defaultBranch]);
 
   const onSelectValueChange = (val: string) => {
-    const branch = branches.find(b => b.id === val);
+    const branch = branches.find((b) => b.id === val);
     setSelectedBranch(branch);
-    setPath("/")
-  }
+    setPath("/");
+  };
 
   const handleBackFolderClick = () => {
-    setPath(prevPath => {
-      const lastSlashIndex = prevPath.lastIndexOf('/');
+    setPath((prevPath) => {
+      const lastSlashIndex = prevPath.lastIndexOf("/");
       if (lastSlashIndex !== -1) {
-        const newLastSlashIndex = prevPath.slice(0, lastSlashIndex - 1).lastIndexOf('/');
-        return newLastSlashIndex !== -1 ? prevPath.slice(0, newLastSlashIndex + 1) : '/';
+        const newLastSlashIndex = prevPath.slice(0, lastSlashIndex - 1).lastIndexOf("/");
+        return newLastSlashIndex !== -1 ? prevPath.slice(0, newLastSlashIndex + 1) : "/";
       } else {
-        return '/';
+        return "/";
       }
-    })
-  }
+    });
+  };
 
   const handleFileClick = (node: any) => {
     if (node.isFolder) {
-      setPath(`${path}${node.name}/`)
+      setPath(`${path}${node.name}/`);
       return;
     }
 
-    setFilePath(`${path}${node.name}`)
-    setPath(`${path}${node.name}/`)
-  }
+    setFilePath(`${path}${node.name}`);
+    setPath(`${path}${node.name}/`);
+  };
 
   return (
     <div className="w-full flex flex-col items-center pt-10">
       <div>
         <div className="w-[1024px] h-10 flex justify-between">
           <div className="flex gap-1 flex-1 items-center">
-            <Select
-              value={selectedBranch?.id}
-              onValueChange={onSelectValueChange}>
+            <Select value={selectedBranch?.id} onValueChange={onSelectValueChange}>
               <SelectTrigger className="max-w-[300px]">
                 {selectedBranch?.name ?? "None"}
               </SelectTrigger>
               <SelectContent>
-                {
-                  branches.map(b => (
-                    <SelectItem key={b.id} value={b.id}>
-                      <div className="flex h-full justify-between w-[200px]">
-                        <div>{b.name}</div>
-                        {
-                          b.id === defaultBranch?.id &&
-                          <small className="w-10 h-5 rounded-lg text-black border border-black p-1 flex items-center justify-center">default</small>
-                        }
-                      </div>
-                    </SelectItem>
-                  ))
-                }
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    <div className="flex h-full justify-between w-[200px]">
+                      <div>{b.name}</div>
+                      {b.id === defaultBranch?.id && (
+                        <small className="w-10 h-5 rounded-lg text-black border border-black p-1 flex items-center justify-center">
+                          default
+                        </small>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <span onClick={() => navigate(`/repository/${repository?.name}/branches`)} className="cursor-pointer text-xs break-keep text-white hover:underline">
+            <span
+              onClick={() => navigate(`/repository/${repository?.name}/branches`)}
+              className="cursor-pointer text-xs break-keep text-white hover:underline"
+            >
               View All Branches
             </span>
           </div>
@@ -203,8 +203,9 @@ export const RepositoryCodePage = () => {
                 </div>
                 {isUserWatchingRepository == 0 ? "Unwatch" : "Watch"}
                 <svg
-                  className={`w-3 h-3 transition-transform transform ${showDropdown2 ? "rotate-180" : ""
-                    }`}
+                  className={`w-3 h-3 transition-transform transform ${
+                    showDropdown2 ? "rotate-180" : ""
+                  }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
@@ -263,8 +264,8 @@ export const RepositoryCodePage = () => {
                     {(isUserWatchingRepository === 2 ||
                       isUserWatchingRepository === 3 ||
                       isUserWatchingRepository === 4) && (
-                        <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                      )}
+                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                    )}
                   </div>
                 </div>
               )}
@@ -332,7 +333,9 @@ export const RepositoryCodePage = () => {
               onClick={handleStarring}
             >
               <img src={star} alt="star" className="w-[16px] my-auto h-[16px] rounded-md" />
-              <div className="bg-gray-600 rounded-[50%] w-5">{usersThatStarredRepository.length}</div>
+              <div className="bg-gray-600 rounded-[50%] w-5">
+                {usersThatStarredRepository.length}
+              </div>
               {didUserStarRepository ? "Unstar" : "Star"}
             </Button>
           </div>
@@ -340,26 +343,35 @@ export const RepositoryCodePage = () => {
       </div>
 
       <div className="w-full mt-10 flex flex-col gap-1">
-        {path != "/" &&
+        {path != "/" && (
           <div key="back" className="flex w-3/4 mx-auto">
-            <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
+            <div
+              className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}
+            >
               <FontAwesomeIcon icon={faFolder} className="icon white" />
-              <div className="ml-3 cursor-pointer" onClick={handleBackFolderClick}>...</div>
+              <div className="ml-3 cursor-pointer" onClick={handleBackFolderClick}>
+                ...
+              </div>
             </div>
           </div>
-        }
-        {(!filePath || !path.includes(filePath ?? "")) && fileTree.map((node: any) => (
-          <div key={node.name} className="flex w-3/4 mx-auto">
-            <div className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}>
-              <FontAwesomeIcon icon={node.isFolder ? faFolder : faFile} className="icon white" />
-              <div className="ml-3 cursor-pointer" onClick={() => handleFileClick(node)}>{node.name}</div>
+        )}
+        {(!filePath || !path.includes(filePath ?? "")) &&
+          fileTree.map((node: any) => (
+            <div key={node.name} className="flex w-3/4 mx-auto">
+              <div
+                className={`flex items-center text-gray-400 border border-gray-500 rounded-lg p-3 w-full`}
+              >
+                <FontAwesomeIcon icon={node.isFolder ? faFolder : faFile} className="icon white" />
+                <div className="ml-3 cursor-pointer" onClick={() => handleFileClick(node)}>
+                  {node.name}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-        {
-          !!filePath && path.includes(filePath ?? "") && <FilePreview branchId={selectedBranch?.id} path={filePath} />
-        }
+          ))}
+        {!!filePath && path.includes(filePath ?? "") && (
+          <FilePreview branchId={selectedBranch?.id} path={filePath} />
+        )}
       </div>
-    </div >
+    </div>
   );
 };
