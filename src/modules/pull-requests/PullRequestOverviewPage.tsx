@@ -48,7 +48,7 @@ export const PullRequestOverviewPage = () => {
             </div>
           }
           {pr?.state === 1  &&
-            <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
+            <div className="w-[80px] flex justify-center rounded-3xl bg-red-600 text-white">
               Closed
             </div>
           }
@@ -68,10 +68,10 @@ export const PullRequestOverviewPage = () => {
         <div className="border"></div>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col">
         <div className="w-[70%] flex flex-col pl-14 ">
         {prEvents?.map((event) => (
-             <div key={event.id}>
+             <div key={event.id} className="mt-1">
               <span className="text-white text-lg font-bold">
                 {event.creator.username}
               </span>
@@ -85,12 +85,13 @@ export const PullRequestOverviewPage = () => {
         </div>
 
       
-      
+      <div className="flex justify-center items-center h-full mt-10">
       {pr?.state === 0 ? (
         <Button onClick={handleCloseIssue}>Close pull request</Button>
       ) : (
         <Button onClick={handleReopenIssue}>Reopen pull request</Button>
       )}
+      </div>
     </div>
     </div>
   );
