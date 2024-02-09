@@ -20,9 +20,8 @@ export const PullRequestOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
 
-  const { data: pr, refetch: refetchPr } = useGetPullRequest(id ?? "");
-
-  const { data: prEvents, refetch: refetchPrEvents } = useGetPullRequestEvents(id ?? "");
+  const { data: pr } = useGetPullRequest(id ?? "");
+  const { data: prEvents } = useGetPullRequestEvents(id ?? "");
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
