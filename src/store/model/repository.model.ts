@@ -8,4 +8,5 @@ export type Repository = {
   isPrivate: boolean;
   organization?: Organization;
   members: RepositoryMemberPresenter[];
+  forkedFrom: string | undefined;
 };

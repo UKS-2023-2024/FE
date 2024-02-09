@@ -61,15 +61,15 @@ export const CreatePullRequestPage = () => {
   });
 
   useEffect(() => {
-    const fromBranchId =
-      repositoryBranches != undefined
-        ? repositoryBranches.filter((branch) => !branch.isDefault)[0].id
-        : "";
     const toBranchId =
       repositoryBranches != undefined
         ? repositoryBranches.filter((branch) => branch.isDefault)[0].id
         : "";
-    setFromBranchId(fromBranchId);
+    const fromBranch =
+      repositoryBranches != undefined
+        ? repositoryBranches.filter((branch) => !branch.isDefault)[0]
+        : undefined;
+    setFromBranchId(fromBranch == undefined ? toBranchId : fromBranch.id);
     setToBranchId(toBranchId);
   }, [repositoryBranches]);
 

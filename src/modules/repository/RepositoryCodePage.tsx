@@ -7,6 +7,7 @@ import { useGetDefaultBranchByRepositoryId } from "../../api/query/branch/useGet
 import { useGetAllBranchesWithoutDefaultByRepositoryId } from "../../api/query/branch/useGetAllBranchesWithoutDefaultByRepositoryId";
 import { Button } from "../../components/button/Button";
 import star from "./../../assets/star.png";
+import fork from "./../../assets/fork.png";
 import { useDidUserStarRepository } from "../../api/query/repository/useDidUserStarRepository";
 import { useFindAllUsersThatStarredRepository } from "../../api/query/repository/useFindAllUsersThatStarredRepository";
 import { useStarRepository } from "../../api/mutations/repository/useStarRepository";
@@ -22,6 +23,8 @@ import { faFile, faFolder } from "@fortawesome/free-solid-svg-icons";
 import { useGetFileTree } from "../../api/query/files/useGetFileTree";
 import { Select, SelectItem, SelectContent, SelectTrigger } from "../../components/select/Select";
 import { FilePreview } from "./files/FilePreview";
+import { useNumberOfRepositoryForks } from "../../api/query/repository/useNumberOfRepositoryForks";
+import { useForkRepository } from "../../api/mutations/repository/useForkRepository";
 
 export const RepositoryCodePage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -29,6 +32,7 @@ export const RepositoryCodePage = () => {
   const { data: allBranches } = useGetAllBranchesWithoutDefaultByRepositoryId(repository?.id ?? "");
   const { mutateAsync: starRepository } = useStarRepository();
   const { mutateAsync: unstarRepository } = useUnstarRepository();
+  const { mutateAsync: forkRepository } = useForkRepository();
   const { data: didUserStarRepository } = useDidUserStarRepository(repository?.id ?? "");
   const { data: usersThatStarredRepository } = useFindAllUsersThatStarredRepository(
     repository?.id ?? ""
@@ -37,6 +41,7 @@ export const RepositoryCodePage = () => {
   const { mutateAsync: watchRepository } = useWatchRepository();
   const { mutateAsync: unwatchRepository } = useUnwatchRepository();
   const { data: usersWatchingRepository } = useFindAllUsersWatchingRepository(repository?.id ?? "");
+  const { data: numberOfForks } = useNumberOfRepositoryForks(repository?.id ?? "");
   const navigate = useNavigate();
   const [showDropdown2, setShowDropdown2] = useState(false);
   const [showDropdown3, setShowDropdown3] = useState(false);
@@ -63,6 +68,10 @@ export const RepositoryCodePage = () => {
       return;
     }
     starRepository(repository?.id ?? "");
+  };
+
+  const handleForking = () => {
+    forkRepository(repository?.id ?? "");
   };
 
   const handleUnWatch = (e: any) => {
@@ -170,7 +179,7 @@ export const RepositoryCodePage = () => {
             </Select>
             <span
               onClick={() => navigate(`/repository/${repository?.name}/branches`)}
-              className="cursor-pointer text-xs break-keep text-white hover:underline"
+              className="cursor-pointer text-xs break-keep pl-2 text-white hover:underline"
             >
               View All Branches
             </span>
@@ -339,6 +348,14 @@ export const RepositoryCodePage = () => {
               {didUserStarRepository ? "Unstar" : "Star"}
             </Button>
           </div>
+          <Button
+            className="px-6 ml-4 border h-10 text-sm border-gray-300 bg-gray-800 flex gap-2 hover:bg-gray-800"
+            onClick={handleForking}
+          >
+            <img src={fork} alt="fork" className="w-[16px] my-auto h-[16px] rounded-md" />
+            <div className="bg-gray-600 rounded-[50%] w-5">{numberOfForks}</div>
+            Fork
+          </Button>
         </div>
       </div>
 
