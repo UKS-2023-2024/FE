@@ -3,7 +3,7 @@ import { SettingsMenu } from "./SettingsMenu/SettingsMenu"
 import { useEffect } from "react";
 
 export const SettingsPage = () => {
-    return <div className="flex w-full h-full p-2 bg-black gap-2">
+    return <div className="flex w-full min-h-full p-2 bg-black gap-2">
         <div className="flex-1">
             <SettingsMenu />
         </div>
