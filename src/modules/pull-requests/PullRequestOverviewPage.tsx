@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { formatDate } from "../../utils/helper";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components";
-import { Event } from "../../store/model/event.model";
 import { useClosePullRequest } from "../../api/mutations/pull-request/useClosePullRequest";
 import { useReopenPullRequest } from "../../api/mutations/pull-request/useReopenPullRequest";
 import { useGetPullRequest } from "../../api/query/pull-request/useGetPullRequest";
@@ -16,8 +15,6 @@ export const PullRequestOverviewPage = () => {
   const { data: pr } = useGetPullRequest(id ?? "");
 
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
-
-  console.log(prEvents)
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
