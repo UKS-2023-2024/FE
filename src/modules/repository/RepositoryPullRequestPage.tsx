@@ -11,7 +11,6 @@ export const RepositoryPullRequestPage = () => {
   const { data: repositoryPullRequests } = useGetRepositoryPullRequests(
     selectedRepository.id ?? ""
   );
-  console.log(repositoryPullRequests);
   const navigate = useNavigate();
   const { name } = useParams();
 
