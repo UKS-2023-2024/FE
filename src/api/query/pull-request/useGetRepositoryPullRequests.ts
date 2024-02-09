@@ -9,7 +9,7 @@ export const useGetRepositoryPullRequests = (repositoryId: string) => {
     queryKey: ["repository-pull-requests", repositoryId],
     queryFn: () =>
       axios
-        .get(`pull-requests/${repositoryId}`)
+        .get(`pull-requests/${repositoryId}/pull-requests`)
         .then((res) => res.data),
   });
 };

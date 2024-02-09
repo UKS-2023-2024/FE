@@ -35,6 +35,7 @@ import { SettingsAccessPage } from "./modules/settings/SettingsAccessPage";
 import { SettingsPage } from "./modules/settings/SettingsPage";
 import { RepositoryPullRequestPage } from "./modules/repository/RepositoryPullRequestPage";
 import { CreatePullRequestPage } from "./modules/pull-requests/CreatePullRequestPage";
+import { PullRequestOverviewPage } from "./modules/pull-requests/PullRequestOverviewPage";
 
 export const routes: RouteObject[] = [
   {
@@ -116,6 +117,10 @@ export const routes: RouteObject[] = [
           {
             path: "pull-requests/new",
             element: <CreatePullRequestPage />,
+          },
+          {
+            path: "pull-requests/:id",
+            element: <PullRequestOverviewPage />,
           },
           {
             path: "milestones",
