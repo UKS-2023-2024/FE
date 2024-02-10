@@ -18,18 +18,22 @@ import MilestoneProgressBar from "../../components/milestoneProgressBar/mileston
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
 import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
 import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-request/useUnassignMilestoneFromPullRequest";
-
+import { SelectMergeTypeForm } from "./forms/SelectMergeTypeForm";
+import { useMergePullRequest } from "../../api/mutations/pull-request/useMergePullRequest";
+import { MergeType } from "../../store/model/pullRequest.model";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { mutateAsync: mergePullRequest } = useMergePullRequest();
+  const [repository] = useAtom(currentRepositoryAtom);
+  const [openForm, setOpenForm] = useState(false);
 
   const { data: pr } = useGetPullRequest(id ?? "");
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
-
 
   const handleCloseIssue = async () => {
     await closePr(pr?.id ?? "");
@@ -40,7 +44,6 @@ export const PullRequestOverviewPage = () => {
     await reopenPr(pr?.id ?? "");
     queryClient.invalidateQueries(["repository-pull-request", id]);
   };
-
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
   const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
@@ -95,7 +98,14 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries(["repository-pull-request", id]);
     queryClient.invalidateQueries(["pull-request-events", id])
   };
+  const openSelectMergeTypeForm = async () => {
+    setOpenForm(true);
+  };
 
+  const handleMergePullRequest = async (mergeType: MergeType) => {
+    await mergePullRequest({ repositoryId: repository.id, pullRequestId: pr?.id ?? "", mergeType });
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+  }
   return (
     <div className="p-10">
       <div className="w-full flex flex-col">
@@ -104,27 +114,24 @@ export const PullRequestOverviewPage = () => {
           <div className="text-3xl text-gray-500">#{pr?.number}</div>
         </div>
         <div className="flex gap-4 text-lg text-gray-500 pb-4">
-          {pr?.state === 0  &&
+          {pr?.state === 0 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
               Open
             </div>
-          }
-          {pr?.state === 1  &&
+          )}
+          {pr?.state === 1 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-red-600 text-white">
               Closed
             </div>
-          }
-          {pr?.state === 3  &&
-            <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
+          )}
+          {pr?.state === 2 && (
+            <div className="w-[80px] flex justify-center rounded-3xl bg-purple-600 text-white">
               Merged
             </div>
-          }
+          )}
           <div>
-            <span className="font-bold">
-              {pr?.events[0].creator.username}{" "}
-            </span>{" "}
-          wants to merge into {pr?.toBranch} from {pr?.fromBranch}
-            
+            <span className="font-bold">{pr?.events[0].creator.username} </span> wants to merge into{" "}
+            {pr?.toBranch} from {pr?.fromBranch}
           </div>
         </div>
         <div className="border"></div>
@@ -232,14 +239,19 @@ export const PullRequestOverviewPage = () => {
             </div>
           </div>
       </div>
-      <div className="flex justify-center items-center h-full mt-10">
+      <div className="flex justify-center items-center h-full mt-10 gap-4">
       {pr?.state === 0 ? (
         <Button onClick={handleCloseIssue}>Close pull request</Button>
       ) : (
         <Button onClick={handleReopenIssue}>Reopen pull request</Button>
       )}
+      <Button onClick={openSelectMergeTypeForm}>Merge pull request</Button>
       </div>
-    </div>
+      <SelectMergeTypeForm
+        isOpen={openForm}
+        setOpen={setOpenForm}
+        onClick={handleMergePullRequest}
+      />
     </div>
   );
 };
