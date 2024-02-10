@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGetRepositoryIssue } from "../../api/query/issue/useGetRepositoryIssue";
 import { formatDate } from "../../utils/helper";
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
@@ -6,7 +6,7 @@ import { currentRepositoryAtom, currentUserAtom } from "../../store/store";
 import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
-import { PlusIcon, Trash2, SmilePlus, SmilePlusIcon } from "lucide-react";
+import { PlusIcon, Trash2, SmilePlusIcon } from "lucide-react";
 import React from "react";
 import {
   FormControl,
@@ -14,7 +14,6 @@ import {
   Popper,
   Select,
   SelectChangeEvent,
-  dividerClasses,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { Event } from "../../store/model/event.model";
@@ -36,6 +35,7 @@ import { useDeleteReaction } from "../../api/mutations/reaction/useDeleteReactio
 export const IssueOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [selectedRepository] = useAtom(currentRepositoryAtom);
   const [currentUser] = useAtom(currentUserAtom);
 
@@ -225,7 +225,7 @@ export const IssueOverviewPage = () => {
           </span>
           <span className="text-gray-500"> assigned this issue to </span>
           <span className="text-white text-lg font-bold">
-            {event.assignee.member.username}
+            {event.assignee?.member?.username}
           </span>
           <span className="text-gray-500">
             {" "}
@@ -281,6 +281,10 @@ export const IssueOverviewPage = () => {
           </span>
         </div>
       );
+  };
+
+  const handleLabelsClick = () => {
+    navigate(`/repository/${selectedRepository.name}/issues/labels`);
   };
 
   return (
@@ -410,6 +414,13 @@ export const IssueOverviewPage = () => {
             </div>
           </div>
           <div className="mt-5 border"></div>
+          <div>
+            <div className="flex gap-2 mt-4">
+              <div className="text-gray-600">Labels</div>
+            </div>
+            <Button onClick={handleLabelsClick}>Labels</Button>
+            <div className="mt-5 border"></div>
+          </div>
         </div>
       </div>
       <div className="flex flex-col gap-2">
