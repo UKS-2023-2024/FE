@@ -6,6 +6,18 @@ import { useClosePullRequest } from "../../api/mutations/pull-request/useClosePu
 import { useReopenPullRequest } from "../../api/mutations/pull-request/useReopenPullRequest";
 import { useGetPullRequest } from "../../api/query/pull-request/useGetPullRequest";
 import { useGetPullRequestEvents } from "../../api/query/pull-request/useGetPullRequestEvents";
+import { FormControl, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
+import { PlusIcon, Trash2 } from "lucide-react";
+import { Issue } from "../../store/model/issue.model";
+import React, { useEffect, useState } from "react";
+import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIssues";
+import { useAtom } from "jotai";
+import { currentRepositoryAtom } from "../../store/store";
+import { useAssignIssuesToPullRequest } from "../../api/mutations/pull-request/useAssignIssuesToPullRequest";
+import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
+import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
+import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
+import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-request/useUnassignMilestoneFromPullRequest";
 
 
 export const PullRequestOverviewPage = () => {
@@ -13,7 +25,6 @@ export const PullRequestOverviewPage = () => {
   const queryClient = useQueryClient();
 
   const { data: pr } = useGetPullRequest(id ?? "");
-
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
 
   const { mutateAsync: closePr } = useClosePullRequest();
@@ -29,7 +40,61 @@ export const PullRequestOverviewPage = () => {
     await reopenPr(pr?.id ?? "");
     queryClient.invalidateQueries(["repository-pull-request", id]);
   };
- 
+
+  const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
+  const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
+  const [selectedRepository] = useAtom(currentRepositoryAtom);
+  const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
+  };
+  const open = Boolean(anchorEl);
+  const popperId = open ? "simple-popper" : undefined;
+
+  const isIssueSelected = (issueToCheck: Issue) => {
+    return selectedIssues.findIndex((issue) => issue.id === issueToCheck.id) != -1;
+  };
+  const removeIssue = async (issueToRemove: Issue) => {
+    setSelectedIssues(selectedIssues.filter((issue) => issueToRemove.id !== issue.id));
+    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: selectedIssues.filter((issue) => issueToRemove.id !== issue.id).map(issue => issue.id)})
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
+  const AddIssue = async (issueToAdd: Issue) => {
+    setSelectedIssues([...selectedIssues, issueToAdd]);
+    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: [...selectedIssues, issueToAdd].map(issue => issue.id)})
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
+
+  useEffect(() => {
+    setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
+    setSelectedMilestone(pr?.milestone?.id ?? "")
+  }, [pr])
+  
+  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
+  const [selectedMilestone, setSelectedMilestone] = React.useState(
+    pr?.milestone?.id ?? ""
+  );
+  const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
+  const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
+
+  const handleMilestoneChange = async (event: SelectChangeEvent) => {
+    setSelectedMilestone(event.target.value);
+    if (pr?.milestone) {
+      await unassignMilestoneFromPullRequest({
+        id: pr?.id ?? "",
+      });
+    } else {
+      await assignMilestoneToPullRequest({
+        id: pr?.id ?? "",
+        milestoneId: event.target.value,
+      });
+    }
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
 
   return (
     <div className="p-10">
@@ -66,22 +131,107 @@ export const PullRequestOverviewPage = () => {
       </div>
 
       <div className="flex flex-col">
-        <div className="w-[70%] flex flex-col pl-14 ">
-        {prEvents?.map((event) => (
-             <div key={event.id} className="mt-1">
-              <span className="text-white text-lg font-bold">
-                {event.creator.username}
-              </span>
-              <span className="text-gray-500"> {event.title}</span>
-              <span className="text-gray-500">
-                {" "}
-                on {formatDate(event.createdAt)}
-              </span>
-           </div>
-          ))}
-        </div>
-
-      
+        <div className="flex">
+          <div className="w-[70%] flex flex-col pl-14 ">
+            {prEvents?.map((event) => (
+                <div key={event.id} className="mt-1">
+                  <span className="text-white text-lg font-bold">
+                    {event.creator.username}
+                  </span>
+                  <span className="text-gray-500"> {event.title}</span>
+                  <span className="text-gray-500">
+                    {" "}
+                    on {formatDate(event.createdAt)}
+                  </span>
+              </div>
+              ))}
+          </div>
+          <div className="w-[20%]">
+            <div>
+            <div className="flex gap-2 mt-4">
+              <div className="text-gray-600">Milestone</div>
+            </div>
+            <FormControl fullWidth variant="standard">
+              <Select
+                labelId="demo-simple-select-standard-label"
+                defaultValue={pr?.milestone?.title ?? ""}
+                id="demo-simple-select-standard"
+                value={selectedMilestone}
+                onChange={handleMilestoneChange}
+                className="bg-white"
+              >
+                <MenuItem value={""} className="w-full flex gap-3">
+                  <span>Clear</span>
+                </MenuItem>
+                {repositoryMilestones.map((milestone) => (
+                  <MenuItem
+                    key={milestone.id}
+                    value={milestone.id}
+                    className="w-full flex gap-3"
+                  >
+                    <span>{milestone.title ?? ""}</span>
+                    {milestone.closed ? (
+                      <span className="bg-red-600 text-white rounded-xl p-1">
+                        closed
+                      </span>
+                    ) : (
+                      <span className="bg-green-600 text-white rounded-xl p-1">
+                        open
+                      </span>
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <div className="mt-2">
+              {selectedMilestone && (
+                <MilestoneProgressBar
+                  milestoneId={selectedMilestone}
+                ></MilestoneProgressBar>
+              )}
+            </div>
+          </div>
+          <div className="border mt-5 mb-5"></div>
+          <div className="flex">
+            <div className="text-gray-600">Issues</div>
+              <button aria-describedby={id} type="button" onClick={handleClick}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperId}
+              open={open}
+              anchorEl={anchorEl}
+              className="bg-gray-700 rounded w-[200px] p-4"
+            >
+              <div className="text-white">
+                {repositoryIssues.map((issue: Issue) => (
+                  <div className="flex gap-2" key={issue.id}>
+                    <div>
+                      #{issue.number} {issue.title}
+                    </div>
+                    {isIssueSelected(issue) ? (
+                      <div onClick={() => removeIssue(issue)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddIssue(issue)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="p-1">
+              {selectedIssues.map((issue) => (
+              <div key={issue.id} className="text-white text-l">
+                #{issue.number} {issue.title}
+              </div>
+             ))}
+            </div>
+          </div>
+      </div>
       <div className="flex justify-center items-center h-full mt-10">
       {pr?.state === 0 ? (
         <Button onClick={handleCloseIssue}>Close pull request</Button>

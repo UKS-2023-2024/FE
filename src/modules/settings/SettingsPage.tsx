@@ -1,6 +1,5 @@
-import { Outlet, useLocation } from "react-router-dom"
+import { Outlet } from "react-router-dom"
 import { SettingsMenu } from "./SettingsMenu/SettingsMenu"
-import { useEffect } from "react";
 
 export const SettingsPage = () => {
     return <div className="flex w-full min-h-full p-2 bg-black gap-2">

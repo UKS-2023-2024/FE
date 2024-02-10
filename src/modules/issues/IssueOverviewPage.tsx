@@ -25,7 +25,6 @@ import { useGetIssueEvents } from "../../api/query/issue/useGetIssueEvents";
 import { Button } from "../../components";
 import { useCloseIssue } from "../../api/mutations/issue/useCloseIssue";
 import { useReopenIssue } from "../../api/mutations/issue/useReopenIssue";
-import { useGetMilestoneCompletionPercentage } from "../../api/query/milestone/useGetMilestoneCompletionPercentage";
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
 import { useAddIssueComment } from "../../api/mutations/comment/useAddIssueComment";
 import EmojiPicker from "emoji-picker-react";
