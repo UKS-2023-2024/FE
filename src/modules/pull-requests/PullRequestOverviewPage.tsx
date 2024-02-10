@@ -18,18 +18,22 @@ import MilestoneProgressBar from "../../components/milestoneProgressBar/mileston
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
 import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
 import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-request/useUnassignMilestoneFromPullRequest";
-
+import { SelectMergeTypeForm } from "./forms/SelectMergeTypeForm";
+import { useMergePullRequest } from "../../api/mutations/pull-request/useMergePullRequest";
+import { MergeType } from "../../store/model/pullRequest.model";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { mutateAsync: mergePullRequest } = useMergePullRequest();
+  const [repository] = useAtom(currentRepositoryAtom);
+  const [openForm, setOpenForm] = useState(false);
 
   const { data: pr } = useGetPullRequest(id ?? "");
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
-
 
   const handleCloseIssue = async () => {
     await closePr(pr?.id ?? "");
@@ -40,7 +44,6 @@ export const PullRequestOverviewPage = () => {
     await reopenPr(pr?.id ?? "");
     queryClient.invalidateQueries(["repository-pull-request", id]);
   };
-
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
   const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
@@ -57,26 +60,32 @@ export const PullRequestOverviewPage = () => {
   };
   const removeIssue = async (issueToRemove: Issue) => {
     setSelectedIssues(selectedIssues.filter((issue) => issueToRemove.id !== issue.id));
-    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: selectedIssues.filter((issue) => issueToRemove.id !== issue.id).map(issue => issue.id)})
+    await assignIssuesToPullRequest({
+      id: pr?.id ?? "",
+      issueIds: selectedIssues
+        .filter((issue) => issueToRemove.id !== issue.id)
+        .map((issue) => issue.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
   const AddIssue = async (issueToAdd: Issue) => {
     setSelectedIssues([...selectedIssues, issueToAdd]);
-    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: [...selectedIssues, issueToAdd].map(issue => issue.id)})
+    await assignIssuesToPullRequest({
+      id: pr?.id ?? "",
+      issueIds: [...selectedIssues, issueToAdd].map((issue) => issue.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
 
   useEffect(() => {
     setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
-    setSelectedMilestone(pr?.milestone?.id ?? "")
-  }, [pr])
-  
+    setSelectedMilestone(pr?.milestone?.id ?? "");
+  }, [pr]);
+
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
-  const [selectedMilestone, setSelectedMilestone] = React.useState(
-    pr?.milestone?.id ?? ""
-  );
+  const [selectedMilestone, setSelectedMilestone] = React.useState(pr?.milestone?.id ?? "");
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
   const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
 
@@ -93,9 +102,16 @@ export const PullRequestOverviewPage = () => {
       });
     }
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
+  };
+  const openSelectMergeTypeForm = async () => {
+    setOpenForm(true);
   };
 
+  const handleMergePullRequest = async (mergeType: MergeType) => {
+    await mergePullRequest({ repositoryId: repository.id, pullRequestId: pr?.id ?? "", mergeType });
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+  };
   return (
     <div className="p-10">
       <div className="w-full flex flex-col">
@@ -104,27 +120,24 @@ export const PullRequestOverviewPage = () => {
           <div className="text-3xl text-gray-500">#{pr?.number}</div>
         </div>
         <div className="flex gap-4 text-lg text-gray-500 pb-4">
-          {pr?.state === 0  &&
+          {pr?.state === 0 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
               Open
             </div>
-          }
-          {pr?.state === 1  &&
+          )}
+          {pr?.state === 1 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-red-600 text-white">
               Closed
             </div>
-          }
-          {pr?.state === 3  &&
-            <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
+          )}
+          {pr?.state === 2 && (
+            <div className="w-[80px] flex justify-center rounded-3xl bg-purple-600 text-white">
               Merged
             </div>
-          }
+          )}
           <div>
-            <span className="font-bold">
-              {pr?.events[0].creator.username}{" "}
-            </span>{" "}
-          wants to merge into {pr?.toBranch} from {pr?.fromBranch}
-            
+            <span className="font-bold">{pr?.events[0].creator.username} </span> wants to merge into{" "}
+            {pr?.toBranch} from {pr?.fromBranch}
           </div>
         </div>
         <div className="border"></div>
@@ -134,66 +147,51 @@ export const PullRequestOverviewPage = () => {
         <div className="flex">
           <div className="w-[70%] flex flex-col pl-14 ">
             {prEvents?.map((event) => (
-                <div key={event.id} className="mt-1">
-                  <span className="text-white text-lg font-bold">
-                    {event.creator.username}
-                  </span>
-                  <span className="text-gray-500"> {event.title}</span>
-                  <span className="text-gray-500">
-                    {" "}
-                    on {formatDate(event.createdAt)}
-                  </span>
+              <div key={event.id} className="mt-1">
+                <span className="text-white text-lg font-bold">{event.creator.username}</span>
+                <span className="text-gray-500"> {event.title}</span>
+                <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
               </div>
-              ))}
+            ))}
           </div>
           <div className="w-[20%]">
             <div>
-            <div className="flex gap-2 mt-4">
-              <div className="text-gray-600">Milestone</div>
-            </div>
-            <FormControl fullWidth variant="standard">
-              <Select
-                labelId="demo-simple-select-standard-label"
-                defaultValue={pr?.milestone?.title ?? ""}
-                id="demo-simple-select-standard"
-                value={selectedMilestone}
-                onChange={handleMilestoneChange}
-                className="bg-white"
-              >
-                <MenuItem value={""} className="w-full flex gap-3">
-                  <span>Clear</span>
-                </MenuItem>
-                {repositoryMilestones.map((milestone) => (
-                  <MenuItem
-                    key={milestone.id}
-                    value={milestone.id}
-                    className="w-full flex gap-3"
-                  >
-                    <span>{milestone.title ?? ""}</span>
-                    {milestone.closed ? (
-                      <span className="bg-red-600 text-white rounded-xl p-1">
-                        closed
-                      </span>
-                    ) : (
-                      <span className="bg-green-600 text-white rounded-xl p-1">
-                        open
-                      </span>
-                    )}
+              <div className="flex gap-2 mt-4">
+                <div className="text-gray-600">Milestone</div>
+              </div>
+              <FormControl fullWidth variant="standard">
+                <Select
+                  labelId="demo-simple-select-standard-label"
+                  defaultValue={pr?.milestone?.title ?? ""}
+                  id="demo-simple-select-standard"
+                  value={selectedMilestone}
+                  onChange={handleMilestoneChange}
+                  className="bg-white"
+                >
+                  <MenuItem value={""} className="w-full flex gap-3">
+                    <span>Clear</span>
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <div className="mt-2">
-              {selectedMilestone && (
-                <MilestoneProgressBar
-                  milestoneId={selectedMilestone}
-                ></MilestoneProgressBar>
-              )}
+                  {repositoryMilestones.map((milestone) => (
+                    <MenuItem key={milestone.id} value={milestone.id} className="w-full flex gap-3">
+                      <span>{milestone.title ?? ""}</span>
+                      {milestone.closed ? (
+                        <span className="bg-red-600 text-white rounded-xl p-1">closed</span>
+                      ) : (
+                        <span className="bg-green-600 text-white rounded-xl p-1">open</span>
+                      )}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <div className="mt-2">
+                {selectedMilestone && (
+                  <MilestoneProgressBar milestoneId={selectedMilestone}></MilestoneProgressBar>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="border mt-5 mb-5"></div>
-          <div className="flex">
-            <div className="text-gray-600">Issues</div>
+            <div className="border mt-5 mb-5"></div>
+            <div className="flex">
+              <div className="text-gray-600">Issues</div>
               <button aria-describedby={id} type="button" onClick={handleClick}>
                 <PlusIcon color="white" />
               </button>
@@ -225,21 +223,27 @@ export const PullRequestOverviewPage = () => {
             </Popper>
             <div className="p-1">
               {selectedIssues.map((issue) => (
-              <div key={issue.id} className="text-white text-l">
-                #{issue.number} {issue.title}
-              </div>
-             ))}
+                <div key={issue.id} className="text-white text-l">
+                  #{issue.number} {issue.title}
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+        <div className="flex justify-center items-center h-full mt-10 gap-4">
+          {pr?.state === 0 ? (
+            <Button onClick={handleCloseIssue}>Close pull request</Button>
+          ) : (
+            <Button onClick={handleReopenIssue}>Reopen pull request</Button>
+          )}
+          <Button onClick={openSelectMergeTypeForm}>Merge pull request</Button>
+        </div>
+        <SelectMergeTypeForm
+          isOpen={openForm}
+          setOpen={setOpenForm}
+          onClick={handleMergePullRequest}
+        />
       </div>
-      <div className="flex justify-center items-center h-full mt-10">
-      {pr?.state === 0 ? (
-        <Button onClick={handleCloseIssue}>Close pull request</Button>
-      ) : (
-        <Button onClick={handleReopenIssue}>Reopen pull request</Button>
-      )}
-      </div>
-    </div>
     </div>
   );
 };

@@ -16,3 +16,9 @@ export type PullRequest = {
   toBranch: string;
   issues: Issue;
 };
+
+export enum MergeType {
+  MERGE,
+  REBASE,
+  SQUASH
+}
