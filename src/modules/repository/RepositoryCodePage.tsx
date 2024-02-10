@@ -25,6 +25,7 @@ import { Select, SelectItem, SelectContent, SelectTrigger } from "../../componen
 import { FilePreview } from "./files/FilePreview";
 import { useNumberOfRepositoryForks } from "../../api/query/repository/useNumberOfRepositoryForks";
 import { useForkRepository } from "../../api/mutations/repository/useForkRepository";
+import { useListCommits } from "../../api/query/branch/useListCommits";
 
 export const RepositoryCodePage = () => {
   const [repository] = useAtom(currentRepositoryAtom);
@@ -157,7 +158,7 @@ export const RepositoryCodePage = () => {
     <div className="w-full flex flex-col items-center pt-10">
       <div>
         <div className="w-[1024px] h-10 flex justify-between">
-          <div className="flex gap-1 flex-1 items-center">
+          <div className="flex gap-1 flex-1 items-center px-2">
             <Select value={selectedBranch?.id} onValueChange={onSelectValueChange}>
               <SelectTrigger className="max-w-[300px]">
                 {selectedBranch?.name ?? "None"}
@@ -182,6 +183,12 @@ export const RepositoryCodePage = () => {
               className="cursor-pointer text-xs break-keep pl-2 text-white hover:underline"
             >
               View All Branches
+            </span>
+            <span
+              onClick={() => navigate(`/repository/${repository?.name}/branches/${selectedBranch?.id}/commits`)}
+              className="cursor-pointer text-xs break-keep pl-2 text-white hover:underline"
+            >
+              Commits
             </span>
           </div>
 
@@ -212,9 +219,8 @@ export const RepositoryCodePage = () => {
                 </div>
                 {isUserWatchingRepository == 0 ? "Unwatch" : "Watch"}
                 <svg
-                  className={`w-3 h-3 transition-transform transform ${
-                    showDropdown2 ? "rotate-180" : ""
-                  }`}
+                  className={`w-3 h-3 transition-transform transform ${showDropdown2 ? "rotate-180" : ""
+                    }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
@@ -273,8 +279,8 @@ export const RepositoryCodePage = () => {
                     {(isUserWatchingRepository === 2 ||
                       isUserWatchingRepository === 3 ||
                       isUserWatchingRepository === 4) && (
-                      <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
-                    )}
+                        <img src={check} className="ml-5 w-[16px] my-auto h-[16px] rounded-md" />
+                      )}
                   </div>
                 </div>
               )}

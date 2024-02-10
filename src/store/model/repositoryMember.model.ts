@@ -8,6 +8,7 @@ export type RepositoryMember = {
 
 export type RepositoryMemberPresenter = {
   id: string;
+  memberId: string;
   username: string;
   role: RepositoryMemberRole;
 };
