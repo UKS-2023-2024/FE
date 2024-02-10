@@ -17,6 +17,7 @@ import { useAssignIssuesToPullRequest } from "../../api/mutations/pull-request/u
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
 import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
+import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-request/useUnassignMilestoneFromPullRequest";
 
 
 export const PullRequestOverviewPage = () => {
@@ -77,11 +78,14 @@ export const PullRequestOverviewPage = () => {
     pr?.milestone?.id ?? ""
   );
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
+  const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
     setSelectedMilestone(event.target.value);
     if (pr?.milestone) {
-      //unassign
+      await unassignMilestoneFromPullRequest({
+        id: pr?.id ?? "",
+      });
     } else {
       await assignMilestoneToPullRequest({
         id: pr?.id ?? "",
