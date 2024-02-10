@@ -36,6 +36,7 @@ import { SettingsPage } from "./modules/settings/SettingsPage";
 import { RepositoryPullRequestPage } from "./modules/repository/RepositoryPullRequestPage";
 import { CreatePullRequestPage } from "./modules/pull-requests/CreatePullRequestPage";
 import { PullRequestOverviewPage } from "./modules/pull-requests/PullRequestOverviewPage";
+import { RepositoryBranchCommits } from "./modules/repository/branches/RepositoryBranchCommits";
 
 export const routes: RouteObject[] = [
   {
@@ -163,6 +164,10 @@ export const routes: RouteObject[] = [
                 element: <RepositoryAllBranchesPage />,
               },
             ],
+          },
+          {
+            path: "branches/:branchId/commits",
+            element: <RepositoryBranchCommits />
           },
           {
             path: "watchers",
