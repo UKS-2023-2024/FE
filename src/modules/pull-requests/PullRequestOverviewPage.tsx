@@ -6,7 +6,7 @@ import { useClosePullRequest } from "../../api/mutations/pull-request/useClosePu
 import { useReopenPullRequest } from "../../api/mutations/pull-request/useReopenPullRequest";
 import { useGetPullRequest } from "../../api/query/pull-request/useGetPullRequest";
 import { useGetPullRequestEvents } from "../../api/query/pull-request/useGetPullRequestEvents";
-import { Popper } from "@mui/material";
+import { FormControl, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
 import { PlusIcon, Trash2 } from "lucide-react";
 import { Issue } from "../../store/model/issue.model";
 import React, { useEffect, useState } from "react";
@@ -14,6 +14,9 @@ import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIs
 import { useAtom } from "jotai";
 import { currentRepositoryAtom } from "../../store/store";
 import { useAssignIssuesToPullRequest } from "../../api/mutations/pull-request/useAssignIssuesToPullRequest";
+import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
+import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
+import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
 
 
 export const PullRequestOverviewPage = () => {
@@ -66,8 +69,29 @@ export const PullRequestOverviewPage = () => {
 
   useEffect(() => {
     setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
+    setSelectedMilestone(pr?.milestone?.id ?? "")
   }, [pr])
   
+  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
+  const [selectedMilestone, setSelectedMilestone] = React.useState(
+    pr?.milestone?.id ?? ""
+  );
+  const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
+
+  const handleMilestoneChange = async (event: SelectChangeEvent) => {
+    setSelectedMilestone(event.target.value);
+    if (pr?.milestone) {
+      //unassign
+    } else {
+      await assignMilestoneToPullRequest({
+        id: pr?.id ?? "",
+        milestoneId: event.target.value,
+      });
+    }
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
+
   return (
     <div className="p-10">
       <div className="w-full flex flex-col">
@@ -118,9 +142,54 @@ export const PullRequestOverviewPage = () => {
               </div>
               ))}
           </div>
-          <div>
-            <div className="flex gap-2 pt-10">
-              <div className="text-gray-600">Issues</div>
+          <div className="w-[20%]">
+            <div>
+            <div className="flex gap-2 mt-4">
+              <div className="text-gray-600">Milestone</div>
+            </div>
+            <FormControl fullWidth variant="standard">
+              <Select
+                labelId="demo-simple-select-standard-label"
+                defaultValue={pr?.milestone?.title ?? ""}
+                id="demo-simple-select-standard"
+                value={selectedMilestone}
+                onChange={handleMilestoneChange}
+                className="bg-white"
+              >
+                <MenuItem value={""} className="w-full flex gap-3">
+                  <span>Clear</span>
+                </MenuItem>
+                {repositoryMilestones.map((milestone) => (
+                  <MenuItem
+                    key={milestone.id}
+                    value={milestone.id}
+                    className="w-full flex gap-3"
+                  >
+                    <span>{milestone.title ?? ""}</span>
+                    {milestone.closed ? (
+                      <span className="bg-red-600 text-white rounded-xl p-1">
+                        closed
+                      </span>
+                    ) : (
+                      <span className="bg-green-600 text-white rounded-xl p-1">
+                        open
+                      </span>
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <div className="mt-2">
+              {selectedMilestone && (
+                <MilestoneProgressBar
+                  milestoneId={selectedMilestone}
+                ></MilestoneProgressBar>
+              )}
+            </div>
+          </div>
+          <div className="border mt-5 mb-5"></div>
+          <div className="flex">
+            <div className="text-gray-600">Issues</div>
               <button aria-describedby={id} type="button" onClick={handleClick}>
                 <PlusIcon color="white" />
               </button>
@@ -152,12 +221,12 @@ export const PullRequestOverviewPage = () => {
             </Popper>
             <div className="p-1">
               {selectedIssues.map((issue) => (
-                <div key={issue.id} className="text-white text-l">
-                  #{issue.number} {issue.title}
-                </div>
-              ))}
+              <div key={issue.id} className="text-white text-l">
+                #{issue.number} {issue.title}
+              </div>
+             ))}
             </div>
-        </div>
+          </div>
       </div>
       <div className="flex justify-center items-center h-full mt-10">
       {pr?.state === 0 ? (
