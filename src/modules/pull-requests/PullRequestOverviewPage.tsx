@@ -21,11 +21,16 @@ import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-re
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignUsersToPullRequest } from "../../api/mutations/pull-request/useAssignUsersToPullRequest";
-
+import { SelectMergeTypeForm } from "./forms/SelectMergeTypeForm";
+import { useMergePullRequest } from "../../api/mutations/pull-request/useMergePullRequest";
+import { MergeType } from "../../store/model/pullRequest.model";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { mutateAsync: mergePullRequest } = useMergePullRequest();
+  const [repository] = useAtom(currentRepositoryAtom);
+  const [openForm, setOpenForm] = useState(false);
 
   const { data: pr } = useGetPullRequest(id ?? "");
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
@@ -42,7 +47,6 @@ export const PullRequestOverviewPage = () => {
     await reopenPr(pr?.id ?? "");
     queryClient.invalidateQueries(["repository-pull-request", id]);
   };
-
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
   const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
@@ -59,15 +63,23 @@ export const PullRequestOverviewPage = () => {
   };
   const removeIssue = async (issueToRemove: Issue) => {
     setSelectedIssues(selectedIssues.filter((issue) => issueToRemove.id !== issue.id));
-    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: selectedIssues.filter((issue) => issueToRemove.id !== issue.id).map(issue => issue.id)})
+    await assignIssuesToPullRequest({
+      id: pr?.id ?? "",
+      issueIds: selectedIssues
+        .filter((issue) => issueToRemove.id !== issue.id)
+        .map((issue) => issue.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
   const AddIssue = async (issueToAdd: Issue) => {
     setSelectedIssues([...selectedIssues, issueToAdd]);
-    await assignIssuesToPullRequest({id: pr?.id ?? "", issueIds: [...selectedIssues, issueToAdd].map(issue => issue.id)})
+    await assignIssuesToPullRequest({
+      id: pr?.id ?? "",
+      issueIds: [...selectedIssues, issueToAdd].map((issue) => issue.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
 
   useEffect(() => {
@@ -75,11 +87,9 @@ export const PullRequestOverviewPage = () => {
     setSelectedMembers(Array.isArray(pr?.assignees) ? pr.assignees.map(item => item.member) : []);
     setSelectedMilestone(pr?.milestone?.id ?? "")
   }, [pr])
-  
+
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
-  const [selectedMilestone, setSelectedMilestone] = React.useState(
-    pr?.milestone?.id ?? ""
-  );
+  const [selectedMilestone, setSelectedMilestone] = React.useState(pr?.milestone?.id ?? "");
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
   const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
 
@@ -96,7 +106,10 @@ export const PullRequestOverviewPage = () => {
       });
     }
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
+  };
+  const openSelectMergeTypeForm = async () => {
+    setOpenForm(true);
   };
 
 
@@ -129,6 +142,10 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries(["pull-request-events", id])
   };
 
+  const handleMergePullRequest = async (mergeType: MergeType) => {
+    await mergePullRequest({ repositoryId: repository.id, pullRequestId: pr?.id ?? "", mergeType });
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+  };
   return (
     <div className="p-10">
       <div className="w-full flex flex-col">
@@ -137,27 +154,24 @@ export const PullRequestOverviewPage = () => {
           <div className="text-3xl text-gray-500">#{pr?.number}</div>
         </div>
         <div className="flex gap-4 text-lg text-gray-500 pb-4">
-          {pr?.state === 0  &&
+          {pr?.state === 0 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
               Open
             </div>
-          }
-          {pr?.state === 1  &&
+          )}
+          {pr?.state === 1 && (
             <div className="w-[80px] flex justify-center rounded-3xl bg-red-600 text-white">
               Closed
             </div>
-          }
-          {pr?.state === 3  &&
-            <div className="w-[80px] flex justify-center rounded-3xl bg-green-600 text-white">
+          )}
+          {pr?.state === 2 && (
+            <div className="w-[80px] flex justify-center rounded-3xl bg-purple-600 text-white">
               Merged
             </div>
-          }
+          )}
           <div>
-            <span className="font-bold">
-              {pr?.events[0].creator.username}{" "}
-            </span>{" "}
-          wants to merge into {pr?.toBranch} from {pr?.fromBranch}
-            
+            <span className="font-bold">{pr?.events[0].creator.username} </span> wants to merge into{" "}
+            {pr?.toBranch} from {pr?.fromBranch}
           </div>
         </div>
         <div className="border"></div>
@@ -167,21 +181,15 @@ export const PullRequestOverviewPage = () => {
         <div className="flex">
           <div className="w-[70%] flex flex-col pl-14 ">
             {prEvents?.map((event) => (
-                <div key={event.id} className="mt-1">
-                  <span className="text-white text-lg font-bold">
-                    {event.creator.username}
-                  </span>
-                  <span className="text-gray-500"> {event.title}</span>
-                  <span className="text-gray-500">
-                    {" "}
-                    on {formatDate(event.createdAt)}
-                  </span>
+              <div key={event.id} className="mt-1">
+                <span className="text-white text-lg font-bold">{event.creator.username}</span>
+                <span className="text-gray-500"> {event.title}</span>
+                <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
               </div>
-              ))}
+            ))}
           </div>
           <div className="w-[20%]">
           
-
           <div className="flex mt-5">
               <div className="text-gray-600">Assignees</div>
                 <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
@@ -310,14 +318,20 @@ export const PullRequestOverviewPage = () => {
               </div>
             </div>
         </div>
-      <div className="flex justify-center items-center h-full mt-10">
-      {pr?.state === 0 ? (
-        <Button onClick={handleCloseIssue}>Close pull request</Button>
-      ) : (
-        <Button onClick={handleReopenIssue}>Reopen pull request</Button>
-      )}
+        <div className="flex justify-center items-center h-full mt-10 gap-4">
+          {pr?.state === 0 ? (
+            <Button onClick={handleCloseIssue}>Close pull request</Button>
+          ) : (
+            <Button onClick={handleReopenIssue}>Reopen pull request</Button>
+          )}
+          <Button onClick={openSelectMergeTypeForm}>Merge pull request</Button>
+        </div>
+        <SelectMergeTypeForm
+          isOpen={openForm}
+          setOpen={setOpenForm}
+          onClick={handleMergePullRequest}
+        />
       </div>
-    </div>
     </div>
   );
 };
