@@ -18,6 +18,9 @@ import MilestoneProgressBar from "../../components/milestoneProgressBar/mileston
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
 import { useAssignMilestoneToPullRequest } from "../../api/mutations/pull-request/useAssignMilestoneToPullRequest";
 import { useUnassignMilestoneFromPullRequest } from "../../api/mutations/pull-request/useUnassignMilestoneFromPullRequest";
+import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
+import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
+import { useAssignUsersToPullRequest } from "../../api/mutations/pull-request/useAssignUsersToPullRequest";
 
 
 export const PullRequestOverviewPage = () => {
@@ -29,7 +32,6 @@ export const PullRequestOverviewPage = () => {
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
-
 
   const handleCloseIssue = async () => {
     await closePr(pr?.id ?? "");
@@ -70,6 +72,7 @@ export const PullRequestOverviewPage = () => {
 
   useEffect(() => {
     setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
+    setSelectedMembers(Array.isArray(pr?.assignees) ? pr.assignees.map(item => item.member) : []);
     setSelectedMilestone(pr?.milestone?.id ?? "")
   }, [pr])
   
@@ -92,6 +95,36 @@ export const PullRequestOverviewPage = () => {
         milestoneId: event.target.value,
       });
     }
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
+
+
+  const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
+  const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
+  };
+  const openAssignee = Boolean(anchorElAssignee);
+  const popperIdAssignee = open ? "simple-popper" : undefined;
+
+  const { data: repositoryMembers } = useGetRepositoryMembers(
+    selectedRepository.id ?? ""
+  );
+  const { mutateAsync: assignUsersToPullRequest } = useAssignUsersToPullRequest();
+  const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
+  const isMemberSelected = (memberToCheck: RepositoryMemberPresenter) => {
+    return selectedMembers.findIndex((member) => member.id === memberToCheck.memberId) != -1;
+  };
+
+  const removeMember = async (memberToRemove: RepositoryMemberPresenter) => {
+    setSelectedMembers(selectedMembers.filter((member) => memberToRemove.memberId !== member.id));
+    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: selectedMembers.filter((member) => memberToRemove.memberId !== member.id).map(member => member.id)})
+    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries(["pull-request-events", id])
+  };
+  const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
+    setSelectedMembers([...selectedMembers, memberToAdd]);
+    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: [...selectedMembers, memberToAdd].map(member => member.id)})
     queryClient.invalidateQueries(["repository-pull-request", id]);
     queryClient.invalidateQueries(["pull-request-events", id])
   };
@@ -147,91 +180,136 @@ export const PullRequestOverviewPage = () => {
               ))}
           </div>
           <div className="w-[20%]">
-            <div>
-            <div className="flex gap-2 mt-4">
-              <div className="text-gray-600">Milestone</div>
-            </div>
-            <FormControl fullWidth variant="standard">
-              <Select
-                labelId="demo-simple-select-standard-label"
-                defaultValue={pr?.milestone?.title ?? ""}
-                id="demo-simple-select-standard"
-                value={selectedMilestone}
-                onChange={handleMilestoneChange}
-                className="bg-white"
+          
+
+          <div className="flex mt-5">
+              <div className="text-gray-600">Assignees</div>
+                <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
+                  <PlusIcon color="white" />
+                </button>
+              </div>
+              <Popper
+                id={popperIdAssignee}
+                open={openAssignee}
+                anchorEl={anchorElAssignee}
+                className="bg-gray-700 rounded w-[200px] p-4"
               >
-                <MenuItem value={""} className="w-full flex gap-3">
-                  <span>Clear</span>
-                </MenuItem>
-                {repositoryMilestones.map((milestone) => (
-                  <MenuItem
-                    key={milestone.id}
-                    value={milestone.id}
-                    className="w-full flex gap-3"
-                  >
-                    <span>{milestone.title ?? ""}</span>
-                    {milestone.closed ? (
-                      <span className="bg-red-600 text-white rounded-xl p-1">
-                        closed
-                      </span>
-                    ) : (
-                      <span className="bg-green-600 text-white rounded-xl p-1">
-                        open
-                      </span>
-                    )}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <div className="mt-2">
-              {selectedMilestone && (
-                <MilestoneProgressBar
-                  milestoneId={selectedMilestone}
-                ></MilestoneProgressBar>
-              )}
-            </div>
-          </div>
-          <div className="border mt-5 mb-5"></div>
-          <div className="flex">
-            <div className="text-gray-600">Issues</div>
-              <button aria-describedby={id} type="button" onClick={handleClick}>
-                <PlusIcon color="white" />
-              </button>
-            </div>
-            <Popper
-              id={popperId}
-              open={open}
-              anchorEl={anchorEl}
-              className="bg-gray-700 rounded w-[200px] p-4"
-            >
-              <div className="text-white">
-                {repositoryIssues.map((issue: Issue) => (
-                  <div className="flex gap-2" key={issue.id}>
-                    <div>
-                      #{issue.number} {issue.title}
+                <div className="text-white">
+                  {repositoryMembers.map((member: RepositoryMemberPresenter) => (
+                    <div className="flex gap-2" key={member.id}>
+                      <div>
+                        {member.username}
+                      </div>
+                      {isMemberSelected(member) ? (
+                        <div onClick={() => removeMember(member)}>
+                          <Trash2 color="white" />
+                        </div>
+                      ) : (
+                        <div onClick={() => AddMember(member)}>
+                          <PlusIcon color="white" />
+                        </div>
+                      )}
                     </div>
-                    {isIssueSelected(issue) ? (
-                      <div onClick={() => removeIssue(issue)}>
-                        <Trash2 color="white" />
-                      </div>
-                    ) : (
-                      <div onClick={() => AddIssue(issue)}>
-                        <PlusIcon color="white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </Popper>
+              <div className="p-1">
+                {selectedMembers.map((member) => (
+                <div key={member.id} className="text-white text-l">
+                  {member.username} 
+                </div>
+              ))}
               </div>
-            </Popper>
-            <div className="p-1">
-              {selectedIssues.map((issue) => (
-              <div key={issue.id} className="text-white text-l">
-                #{issue.number} {issue.title}
+
+          <div className="border"></div>
+
+            <div>
+              <div className="flex gap-2 mt-4">
+                <div className="text-gray-600">Milestone</div>
               </div>
-             ))}
+              <FormControl fullWidth variant="standard">
+                <Select
+                  labelId="demo-simple-select-standard-label"
+                  defaultValue={pr?.milestone?.title ?? ""}
+                  id="demo-simple-select-standard"
+                  value={selectedMilestone}
+                  onChange={handleMilestoneChange}
+                  className="bg-white"
+                >
+                  <MenuItem value={""} className="w-full flex gap-3">
+                    <span>Clear</span>
+                  </MenuItem>
+                  {repositoryMilestones.map((milestone) => (
+                    <MenuItem
+                      key={milestone.id}
+                      value={milestone.id}
+                      className="w-full flex gap-3"
+                    >
+                      <span>{milestone.title ?? ""}</span>
+                      {milestone.closed ? (
+                        <span className="bg-red-600 text-white rounded-xl p-1">
+                          closed
+                        </span>
+                      ) : (
+                        <span className="bg-green-600 text-white rounded-xl p-1">
+                          open
+                        </span>
+                      )}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+             
+              <div className="mt-2">
+                {selectedMilestone && (
+                  <MilestoneProgressBar
+                    milestoneId={selectedMilestone}
+                  ></MilestoneProgressBar>
+                )}
+              </div>
             </div>
-          </div>
-      </div>
+
+            <div className="border mt-5 mb-5"></div>
+            <div className="flex">
+              <div className="text-gray-600">Issues</div>
+                <button aria-describedby={id} type="button" onClick={handleClick}>
+                  <PlusIcon color="white" />
+                </button>
+              </div>
+              <Popper
+                id={popperId}
+                open={open}
+                anchorEl={anchorEl}
+                className="bg-gray-700 rounded w-[200px] p-4"
+              >
+                <div className="text-white">
+                  {repositoryIssues.map((issue: Issue) => (
+                    <div className="flex gap-2" key={issue.id}>
+                      <div>
+                        #{issue.number} {issue.title}
+                      </div>
+                      {isIssueSelected(issue) ? (
+                        <div onClick={() => removeIssue(issue)}>
+                          <Trash2 color="white" />
+                        </div>
+                      ) : (
+                        <div onClick={() => AddIssue(issue)}>
+                          <PlusIcon color="white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Popper>
+              <div className="p-1">
+                {selectedIssues.map((issue) => (
+                <div key={issue.id} className="text-white text-l">
+                  #{issue.number} {issue.title}
+                </div>
+              ))}
+              </div>
+            </div>
+        </div>
       <div className="flex justify-center items-center h-full mt-10">
       {pr?.state === 0 ? (
         <Button onClick={handleCloseIssue}>Close pull request</Button>
