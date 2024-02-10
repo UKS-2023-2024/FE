@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useGetRepositoryIssue } from "../../api/query/issue/useGetRepositoryIssue";
 import { formatDate } from "../../utils/helper";
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
-import { currentRepositoryAtom } from "../../store/store";
+import { currentRepositoryAtom, currentUserAtom } from "../../store/store";
 import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
@@ -14,6 +14,7 @@ import {
   Popper,
   Select,
   SelectChangeEvent,
+  dividerClasses,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { Event } from "../../store/model/event.model";
@@ -31,11 +32,13 @@ import EmojiPicker from "emoji-picker-react";
 import { useAddReaction } from "../../api/mutations/reaction/useAddReaction";
 import { Reaction } from "../../store/model/reaction.model";
 import { Comment } from "../../store/model/comment.model";
+import { useDeleteReaction } from "../../api/mutations/reaction/useDeleteReaction";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const [selectedRepository] = useAtom(currentRepositoryAtom);
+  const [currentUser] = useAtom(currentUserAtom);
 
   const { data: issue } = useGetRepositoryIssue(id ?? "");
   const { data: repositoryMembers } = useGetRepositoryMembers(
@@ -53,6 +56,7 @@ export const IssueOverviewPage = () => {
   const { mutateAsync: reopenIssue } = useReopenIssue();
   const { mutateAsync: addComment } = useAddIssueComment();
   const { mutateAsync: addReaction } = useAddReaction();
+  const { mutateAsync: deleteReaction } = useDeleteReaction();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(
@@ -161,6 +165,21 @@ export const IssueOverviewPage = () => {
       taskId: issue?.id ?? "",
       content: currentComment,
     });
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleDeleteReaction = async (
+    comment: Comment,
+    reaction: Reaction,
+    username: string
+  ) => {
+    const reactions = comment.reactions.filter(
+      (r) => r.emojiCode === reaction.emojiCode
+    );
+    const reactionForDeletion = reactions.find(
+      (r) => r.creator.username === username
+    );
+    await deleteReaction(reactionForDeletion?.id ?? "");
     queryClient.invalidateQueries(["repository-issue", id]);
   };
 
@@ -435,8 +454,22 @@ export const IssueOverviewPage = () => {
                         open={reactionsOpen}
                         anchorEl={reactionPopper}
                       >
-                        {displayedReactions.map((reaction) => (
-                          <div>{reaction}</div>
+                        {displayedReactions.map((username) => (
+                          <div className="flex">
+                            <div>{username}</div>
+                            {currentUser?.username === username && (
+                              <Trash2
+                                onClick={() =>
+                                  handleDeleteReaction(
+                                    comment,
+                                    reaction,
+                                    username
+                                  )
+                                }
+                                color="red"
+                              />
+                            )}
+                          </div>
                         ))}
                       </Popper>
                     </>
