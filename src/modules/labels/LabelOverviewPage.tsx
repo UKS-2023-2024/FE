@@ -6,7 +6,6 @@ import { Button } from "../../components";
 import { Input } from "../../components/input/Input";
 import { useCreateLabel } from "../../api/mutations/label/useCreateLabel";
 import { useQueryClient } from "@tanstack/react-query";
-import { useDeleteLabel } from "../../api/mutations/label/useDeleteLabel";
 import { LabelOverview } from "../../components/labels/LabelOverview";
 
 export const LabelOverviewPage = () => {

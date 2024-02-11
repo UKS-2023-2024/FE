@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
 import { PlusIcon, Trash2, SmilePlusIcon } from "lucide-react";
-import React from "react";
+import React, { ReactPropTypes } from "react";
 import {
   FormControl,
   MenuItem,
@@ -31,6 +31,11 @@ import { useAddReaction } from "../../api/mutations/reaction/useAddReaction";
 import { Reaction } from "../../store/model/reaction.model";
 import { Comment } from "../../store/model/comment.model";
 import { useDeleteReaction } from "../../api/mutations/reaction/useDeleteReaction";
+import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
+import { Label } from "../../store/model/label.model";
+import { Issue } from "../../store/model/issue.model";
+import { useAssignLabelToIssue } from "../../api/mutations/label/useAssignLabelToIssue";
+import { useUnassignLabelFromIssue } from "../../api/mutations/label/useUnassignLabelFromIssue";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -46,6 +51,7 @@ export const IssueOverviewPage = () => {
   const { data: repositoryMilestones } =
     useGetRepositoryMilestones(selectedRepository);
   const { data: issueEvents } = useGetIssueEvents(id ?? "");
+  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository);
 
   const { mutateAsync: assignIssueToUser } = useAssignIssueToUser();
   const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
@@ -56,6 +62,8 @@ export const IssueOverviewPage = () => {
   const { mutateAsync: addComment } = useAddIssueComment();
   const { mutateAsync: addReaction } = useAddReaction();
   const { mutateAsync: deleteReaction } = useDeleteReaction();
+  const { mutateAsync: assignLabel } = useAssignLabelToIssue();
+  const { mutateAsync: unassignLabel } = useUnassignLabelFromIssue();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(
@@ -63,6 +71,9 @@ export const IssueOverviewPage = () => {
   );
   const [reactionPopper, setReactionPopper] =
     React.useState<null | HTMLElement>(null);
+  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(
+    null
+  );
 
   const [selectedMilestone, setSelectedMilestone] = React.useState(
     issue?.milestone?.id ?? ""
@@ -80,13 +91,19 @@ export const IssueOverviewPage = () => {
     setEmojiPopper(emojiPopper ? null : event.currentTarget);
   };
 
+  const handleAddLabelClick = (event: React.MouseEvent<HTMLElement>) => {
+    setLabelPopper(labelPopper ? null : event.currentTarget);
+  };
+
   const open = Boolean(anchorEl);
   const emojiOpen = Boolean(emojiPopper);
   const reactionsOpen = Boolean(reactionPopper);
+  const labelPopperOpen = Boolean(labelPopper);
 
   const popperId = open ? "simple-popper" : undefined;
   const emojiPopperId = emojiOpen ? "simple-popper" : undefined;
   const reactionsPopperId = reactionsOpen ? "simple-popper" : undefined;
+  const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
 
   const handleAssignUserToIssue = async (
     member: RepositoryMemberPresenter,
@@ -118,6 +135,10 @@ export const IssueOverviewPage = () => {
     return issue?.assignees.find((assignee) => assignee.id === member.id);
   };
 
+  const isLabelAssigned = (label: Label): boolean => {
+    return issue?.labels.find((l) => l.title === label.title);
+  };
+
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
     setSelectedMilestone(event.target.value);
     if (issue?.milestone) {
@@ -145,7 +166,36 @@ export const IssueOverviewPage = () => {
         assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
       });
     }
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
 
+  const handleAssignLabelToIssue = async (label: Label) => {
+    await assignLabel({
+      id: issue?.id ?? "",
+      title: issue?.title ?? "",
+      description: issue?.description ?? "",
+      repositoryId: issue?.repositoryId ?? "",
+      labelsIds: [...issue?.labels.map((l) => l.id), label.id],
+      milestoneId: issue?.milestone?.id ?? "",
+      state: issue?.state ?? -1,
+      number: issue?.number ?? -1,
+      assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+    });
+    queryClient.invalidateQueries(["repository-issue", id]);
+  };
+
+  const handleUnassignLabelToIssue = async (label: Label) => {
+    await unassignLabel({
+      id: issue?.id ?? "",
+      title: issue?.title ?? "",
+      description: issue?.description ?? "",
+      repositoryId: issue?.repositoryId ?? "",
+      labelsIds: [label.id],
+      milestoneId: issue?.milestone?.id ?? "",
+      state: issue?.state ?? -1,
+      number: issue?.number ?? -1,
+      assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
+    });
     queryClient.invalidateQueries(["repository-issue", id]);
   };
 
@@ -274,6 +324,56 @@ export const IssueOverviewPage = () => {
           <span className="text-gray-500"> removed this issue from </span>
           <span className="text-white text-lg font-bold">
             {event?.milestone?.title ?? ""} milestone
+          </span>
+          <span className="text-gray-500">
+            {" "}
+            on {formatDate(event.createdAt)}
+          </span>
+        </div>
+      );
+    if (event.eventType === 11)
+      return (
+        <div>
+          <span className="text-white text-lg font-bold">
+            {event.creator.username}{" "}
+          </span>
+          <span className="text-gray-500"> added the </span>
+          <span className="text-white text-lg font-bold">
+            <span
+              style={{
+                color: event?.label?.color,
+                borderColor: event?.label?.color,
+              }}
+              className="border rounded-lg p-2 text-xl"
+            >
+              {event?.label?.title ?? ""}
+            </span>{" "}
+            label
+          </span>
+          <span className="text-gray-500">
+            {" "}
+            on {formatDate(event.createdAt)}
+          </span>
+        </div>
+      );
+    if (event.eventType === 12)
+      return (
+        <div>
+          <span className="text-white text-lg font-bold">
+            {event.creator.username}{" "}
+          </span>
+          <span className="text-gray-500"> removed the </span>
+          <span className="text-white text-lg font-bold">
+            <span
+              style={{
+                color: event?.label?.color,
+                borderColor: event?.label?.color,
+              }}
+              className="border rounded-lg p-2 text-xl"
+            >
+              {event?.label?.title ?? ""}
+            </span>{" "}
+            label
           </span>
           <span className="text-gray-500">
             {" "}
@@ -417,6 +517,51 @@ export const IssueOverviewPage = () => {
           <div>
             <div className="flex gap-2 mt-4">
               <div className="text-gray-600">Labels</div>
+              <button
+                aria-describedby={id}
+                type="button"
+                onClick={handleAddLabelClick}
+              >
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={labelPopperId}
+              open={labelPopperOpen}
+              anchorEl={labelPopper}
+              className="bg-gray-700 rounded w-[220px] p-4"
+            >
+              <div className="flex flex-col gap-2 text-white">
+                {repositoryLabels.map((label) => (
+                  <div className={`flex justify-between gap-2 items-center`}>
+                    <div
+                      style={{ color: label.color, borderColor: label.color }}
+                      className="border rounded-lg p-2 text-xl"
+                    >
+                      {label.title}
+                    </div>
+                    {isLabelAssigned(label) ? (
+                      <div onClick={() => handleUnassignLabelToIssue(label)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => handleAssignLabelToIssue(label)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="flex flex-col gap-2 p-2">
+              {issue?.labels.map((label) => (
+                <div
+                  style={{ color: label.color, borderColor: label.color }}
+                  className={`flex justify-center border rounded-lg p-2 text-xl`}
+                >
+                  {label.title}
+                </div>
+              ))}
             </div>
             <Button onClick={handleLabelsClick}>Labels</Button>
             <div className="mt-5 border"></div>
