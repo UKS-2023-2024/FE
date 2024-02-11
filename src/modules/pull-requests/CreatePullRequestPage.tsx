@@ -225,7 +225,7 @@ export const CreatePullRequestPage = () => {
               <span className="text-white text-lg font-bold">Selected issues :</span>
               <div className="p-2">
                 {selectedIssues.map((issue) => (
-                  <div className="text-white text-sm">
+                  <div className="text-white text-sm" key={issue.id}>
                     #{issue.number} {issue.title}
                   </div>
                 ))}
@@ -235,7 +235,9 @@ export const CreatePullRequestPage = () => {
               <span className="text-white text-lg font-bold">Selected assignees :</span>
               <div className="p-2">
                 {selectedAssignees.map((assignee) => (
-                  <div className="text-white text-sm">{assignee.username}</div>
+                  <div className="text-white text-sm" key={assignee.id}>
+                    {assignee.username}
+                  </div>
                 ))}
               </div>
             </div>
@@ -285,7 +287,7 @@ export const CreatePullRequestPage = () => {
             >
               <div className="text-white flex flex-col gap-2">
                 {repositoryIssues.map((issue: Issue) => (
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end" key={issue.id}>
                     <div>
                       #{issue.number} {issue.title}
                     </div>
@@ -316,7 +318,7 @@ export const CreatePullRequestPage = () => {
             >
               <div className="text-white flex flex-col gap-2">
                 {repositoryMembers.map((member: RepositoryMemberPresenter) => (
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end" key={member.memberId}>
                     <div>{member.username}</div>
                     {isAssigneeSelected(member) ? (
                       <div onClick={() => removeAssignee(member)}>

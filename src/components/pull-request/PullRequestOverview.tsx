@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Event } from "../../store/model/event.model";
 import { formatDate } from "../../utils/helper";
-import { PullRequest } from "../../store/model/pullRequest.model";
+import { EventPresenter, PullRequest } from "../../store/model/pullRequest.model";
 
 interface Props {
   pullRequest: PullRequest;
@@ -10,7 +9,7 @@ interface Props {
 export const PullRequestOverview = ({ pullRequest }: Props) => {
   const navigate = useNavigate();
   const { name } = useParams();
-  const sortedEvents = pullRequest.events.slice().sort((a: Event, b: Event) => {
+  const sortedEvents = pullRequest.events.slice().sort((a: EventPresenter, b: EventPresenter) => {
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
   const initialEvent = sortedEvents && sortedEvents.length > 0 ? sortedEvents[0] : null;
@@ -26,7 +25,7 @@ export const PullRequestOverview = ({ pullRequest }: Props) => {
         <span>
           #{pullRequest.number} opened{" "}
           {formatDate(initialEvent?.createdAt ?? new Date()).toString() ?? ""} by{" "}
-          {initialEvent?.creator.username}
+          {initialEvent?.creator}
         </span>
       </div>
     </div>

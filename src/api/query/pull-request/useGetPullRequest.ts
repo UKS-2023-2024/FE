@@ -5,8 +5,10 @@ import { PullRequest } from "../../../store/model/pullRequest.model";
 export const useGetPullRequest = (id: string) => {
   const { axios } = useAxios();
   return useQuery<PullRequest>({
-    //initialData: {},
     queryKey: ["repository-pull-request", id],
-    queryFn: () => axios.get(`pull-requests/${id}`).then((res) => res.data),
+    queryFn: () => axios.get(`pull-requests/${id}`).then((res) => {
+      console.log(res.data)
+      return res.data
+    }),
   });
 };
