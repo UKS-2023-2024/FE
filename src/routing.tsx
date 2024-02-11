@@ -38,7 +38,7 @@ import { CreatePullRequestPage } from "./modules/pull-requests/CreatePullRequest
 import { PullRequestOverviewPage } from "./modules/pull-requests/PullRequestOverviewPage";
 import { LabelOverviewPage } from "./modules/labels/LabelOverviewPage";
 import { RepositoryBranchCommits } from "./modules/repository/branches/RepositoryBranchCommits";
-
+import { MilestoneOverviewPage } from "./modules/milestone/MilestoneOverviewPage";
 
 export const routes: RouteObject[] = [
   {
@@ -142,6 +142,10 @@ export const routes: RouteObject[] = [
             element: <EditMilestonePage />,
           },
           {
+            path: "milestones/:id",
+            element: <MilestoneOverviewPage />,
+          },
+          {
             path: "",
             element: <RepositoryCodePage />,
           },
@@ -173,7 +177,7 @@ export const routes: RouteObject[] = [
           },
           {
             path: "branches/:branchId/commits",
-            element: <RepositoryBranchCommits />
+            element: <RepositoryBranchCommits />,
           },
           {
             path: "watchers",
