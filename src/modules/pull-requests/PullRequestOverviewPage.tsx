@@ -33,6 +33,7 @@ export const PullRequestOverviewPage = () => {
   const [openForm, setOpenForm] = useState(false);
 
   const { data: pr } = useGetPullRequest(id ?? "");
+  console.log(pr);
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
 
   const { mutateAsync: closePr } = useClosePullRequest();
@@ -84,9 +85,9 @@ export const PullRequestOverviewPage = () => {
 
   useEffect(() => {
     setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
-    setSelectedMembers(Array.isArray(pr?.assignees) ? pr.assignees.map(item => item.member) : []);
-    setSelectedMilestone(pr?.milestone?.id ?? "")
-  }, [pr])
+    setSelectedMembers(Array.isArray(pr?.assignees) ? pr.assignees.map((item) => item.member) : []);
+    setSelectedMilestone(pr?.milestone?.id ?? "");
+  }, [pr]);
 
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const [selectedMilestone, setSelectedMilestone] = React.useState(pr?.milestone?.id ?? "");
@@ -112,7 +113,6 @@ export const PullRequestOverviewPage = () => {
     setOpenForm(true);
   };
 
-
   const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
   const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
@@ -120,9 +120,7 @@ export const PullRequestOverviewPage = () => {
   const openAssignee = Boolean(anchorElAssignee);
   const popperIdAssignee = open ? "simple-popper" : undefined;
 
-  const { data: repositoryMembers } = useGetRepositoryMembers(
-    selectedRepository.id ?? ""
-  );
+  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
   const { mutateAsync: assignUsersToPullRequest } = useAssignUsersToPullRequest();
   const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
   const isMemberSelected = (memberToCheck: RepositoryMemberPresenter) => {
@@ -131,15 +129,23 @@ export const PullRequestOverviewPage = () => {
 
   const removeMember = async (memberToRemove: RepositoryMemberPresenter) => {
     setSelectedMembers(selectedMembers.filter((member) => memberToRemove.memberId !== member.id));
-    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: selectedMembers.filter((member) => memberToRemove.memberId !== member.id).map(member => member.id)})
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: selectedMembers
+        .filter((member) => memberToRemove.memberId !== member.id)
+        .map((member) => member.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
   const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
     setSelectedMembers([...selectedMembers, memberToAdd]);
-    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: [...selectedMembers, memberToAdd].map(member => member.id)})
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: [...selectedMembers, memberToAdd].map((member) => member.id),
+    });
     queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    queryClient.invalidateQueries(["pull-request-events", id]);
   };
 
   const handleMergePullRequest = async (mergeType: MergeType) => {
@@ -147,9 +153,9 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries(["repository-pull-request", id]);
   };
   return (
-    <div className="p-10">
+    <div className="pt-12 w-[1028px] mx-auto">
       <div className="w-full flex flex-col">
-        <div className="flex items-center gap-4 pt-4 pb-2">
+        <div className="flex items-center gap-4 pb-2">
           <div className="text-3xl text-white">{pr?.title ?? ""}</div>
           <div className="text-3xl text-gray-500">#{pr?.number}</div>
         </div>
@@ -179,7 +185,7 @@ export const PullRequestOverviewPage = () => {
 
       <div className="flex flex-col">
         <div className="flex">
-          <div className="w-[70%] flex flex-col pl-14 ">
+          <div className="flex flex-col flex-grow max-h-[350px] overflow-y-auto mr-4">
             {prEvents?.map((event) => (
               <div key={event.id} className="mt-1">
                 <span className="text-white text-lg font-bold">{event.creator.username}</span>
@@ -188,48 +194,44 @@ export const PullRequestOverviewPage = () => {
               </div>
             ))}
           </div>
-          <div className="w-[20%]">
-          
-          <div className="flex mt-5">
+          <div className="w-[285px]">
+            <div className="flex mt-5">
               <div className="text-gray-600">Assignees</div>
-                <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
-                  <PlusIcon color="white" />
-                </button>
-              </div>
-              <Popper
-                id={popperIdAssignee}
-                open={openAssignee}
-                anchorEl={anchorElAssignee}
-                className="bg-gray-700 rounded w-[200px] p-4"
-              >
-                <div className="text-white">
-                  {repositoryMembers.map((member: RepositoryMemberPresenter) => (
-                    <div className="flex gap-2" key={member.id}>
-                      <div>
-                        {member.username}
+              <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdAssignee}
+              open={openAssignee}
+              anchorEl={anchorElAssignee}
+              className="bg-gray-700 rounded w-[200px] p-4"
+            >
+              <div className="text-white">
+                {repositoryMembers.map((member: RepositoryMemberPresenter) => (
+                  <div className="flex gap-2" key={member.id}>
+                    <div>{member.username}</div>
+                    {isMemberSelected(member) ? (
+                      <div onClick={() => removeMember(member)}>
+                        <Trash2 color="white" />
                       </div>
-                      {isMemberSelected(member) ? (
-                        <div onClick={() => removeMember(member)}>
-                          <Trash2 color="white" />
-                        </div>
-                      ) : (
-                        <div onClick={() => AddMember(member)}>
-                          <PlusIcon color="white" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Popper>
-              <div className="p-1">
-                {selectedMembers.map((member) => (
+                    ) : (
+                      <div onClick={() => AddMember(member)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="p-1">
+              {selectedMembers.map((member) => (
                 <div key={member.id} className="text-white text-l">
-                  {member.username} 
+                  {member.username}
                 </div>
               ))}
-              </div>
-
-          <div className="border"></div>
+            </div>
+            <div className="border"></div>
 
             <div>
               <div className="flex gap-2 mt-4">
@@ -248,31 +250,21 @@ export const PullRequestOverviewPage = () => {
                     <span>Clear</span>
                   </MenuItem>
                   {repositoryMilestones.map((milestone) => (
-                    <MenuItem
-                      key={milestone.id}
-                      value={milestone.id}
-                      className="w-full flex gap-3"
-                    >
+                    <MenuItem key={milestone.id} value={milestone.id} className="w-full flex gap-3">
                       <span>{milestone.title ?? ""}</span>
                       {milestone.closed ? (
-                        <span className="bg-red-600 text-white rounded-xl p-1">
-                          closed
-                        </span>
+                        <span className="bg-red-600 text-white rounded-xl p-1">closed</span>
                       ) : (
-                        <span className="bg-green-600 text-white rounded-xl p-1">
-                          open
-                        </span>
+                        <span className="bg-green-600 text-white rounded-xl p-1">open</span>
                       )}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-             
+
               <div className="mt-2">
                 {selectedMilestone && (
-                  <MilestoneProgressBar
-                    milestoneId={selectedMilestone}
-                  ></MilestoneProgressBar>
+                  <MilestoneProgressBar milestoneId={selectedMilestone}></MilestoneProgressBar>
                 )}
               </div>
             </div>
@@ -280,43 +272,43 @@ export const PullRequestOverviewPage = () => {
             <div className="border mt-5 mb-5"></div>
             <div className="flex">
               <div className="text-gray-600">Issues</div>
-                <button aria-describedby={id} type="button" onClick={handleClick}>
-                  <PlusIcon color="white" />
-                </button>
-              </div>
-              <Popper
-                id={popperId}
-                open={open}
-                anchorEl={anchorEl}
-                className="bg-gray-700 rounded w-[200px] p-4"
-              >
-                <div className="text-white">
-                  {repositoryIssues.map((issue: Issue) => (
-                    <div className="flex gap-2" key={issue.id}>
-                      <div>
-                        #{issue.number} {issue.title}
-                      </div>
-                      {isIssueSelected(issue) ? (
-                        <div onClick={() => removeIssue(issue)}>
-                          <Trash2 color="white" />
-                        </div>
-                      ) : (
-                        <div onClick={() => AddIssue(issue)}>
-                          <PlusIcon color="white" />
-                        </div>
-                      )}
+              <button aria-describedby={id} type="button" onClick={handleClick}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperId}
+              open={open}
+              anchorEl={anchorEl}
+              className="bg-gray-700 rounded w-[200px] p-4"
+            >
+              <div className="text-white">
+                {repositoryIssues.map((issue: Issue) => (
+                  <div className="flex gap-2" key={issue.id}>
+                    <div>
+                      #{issue.number} {issue.title}
                     </div>
-                  ))}
-                </div>
-              </Popper>
-              <div className="p-1">
-                {selectedIssues.map((issue) => (
+                    {isIssueSelected(issue) ? (
+                      <div onClick={() => removeIssue(issue)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddIssue(issue)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="p-1">
+              {selectedIssues.map((issue) => (
                 <div key={issue.id} className="text-white text-l">
                   #{issue.number} {issue.title}
                 </div>
               ))}
-              </div>
             </div>
+          </div>
         </div>
         <div className="flex justify-center items-center h-full mt-10 gap-4">
           {pr?.state === 0 ? (

@@ -5,5 +5,7 @@ export const CREATE_PULL_REQUEST_VALIDATION_SCHEMA = yup.object({
   description: yup.string().optional(),
   toBranchId: yup.string().required(),
   fromBranchId: yup.string().required(),
-  issueIds: yup.array().of(yup.string().required()).required()
+  issueIds: yup.array().of(yup.string().required()).required(),
+  assigneeIds: yup.array().of(yup.string().required()).required(),
+  milestoneId: yup.string().optional(),
 });

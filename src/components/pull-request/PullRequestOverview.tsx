@@ -15,7 +15,7 @@ export const PullRequestOverview = ({ pullRequest }: Props) => {
   });
   const initialEvent = sortedEvents && sortedEvents.length > 0 ? sortedEvents[0] : null;
   return (
-    <div className="w-[80%] border rounded p-6">
+    <div className="w-full border rounded p-6">
       <div
         onClick={() => navigate(`/repository/${name}/pull-requests/${pullRequest.id}`)}
         className="text-xl text-white cursor-pointer"
