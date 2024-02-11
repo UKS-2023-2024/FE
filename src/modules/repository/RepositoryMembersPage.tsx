@@ -53,8 +53,8 @@ export const RepositoryMembersPage = () => {
     });
   };
   return (
-    <div className="w-full flex flex-col items-center pt-6">
-      <div className="p-6 text-white w-[1024px]">
+    <div className="w-full flex flex-col items-center pt-12">
+      <div className="text-white w-[1024px]">
         <div className="flex justify-between mb-4">
           <p className="font-sans text-left text-xl">Members</p>
           <Button className="px-6" onClick={() => setOpenForm(true)}>

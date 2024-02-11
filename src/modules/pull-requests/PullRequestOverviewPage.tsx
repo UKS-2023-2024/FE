@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useParams } from "react-router-dom";
 import { formatDate } from "../../utils/helper";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,7 +9,6 @@ import { useGetPullRequest } from "../../api/query/pull-request/useGetPullReques
 import { useGetPullRequestEvents } from "../../api/query/pull-request/useGetPullRequestEvents";
 import { FormControl, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
 import { PlusIcon, Trash2 } from "lucide-react";
-import { Issue } from "../../store/model/issue.model";
 import React, { useEffect, useState } from "react";
 import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIssues";
 import { useAtom } from "jotai";
@@ -23,10 +23,16 @@ import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.mo
 import { useAssignUsersToPullRequest } from "../../api/mutations/pull-request/useAssignUsersToPullRequest";
 import { SelectMergeTypeForm } from "./forms/SelectMergeTypeForm";
 import { useMergePullRequest } from "../../api/mutations/pull-request/useMergePullRequest";
-import { MergeType } from "../../store/model/pullRequest.model";
+import {
+  IssuePullRequestPresenter,
+  MergeType,
+  mapIssueToPresenter,
+} from "../../store/model/pullRequest.model";
+import { useToast } from "../../components/toast";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { mutateAsync: mergePullRequest } = useMergePullRequest();
   const [repository] = useAtom(currentRepositoryAtom);
@@ -37,18 +43,21 @@ export const PullRequestOverviewPage = () => {
 
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
+  const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
 
   const handleCloseIssue = async () => {
     await closePr(pr?.id ?? "");
-    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
   const handleReopenIssue = async () => {
     await reopenPr(pr?.id ?? "");
-    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
-  const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
+  const [selectedIssues, setSelectedIssues] = useState<IssuePullRequestPresenter[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -58,10 +67,10 @@ export const PullRequestOverviewPage = () => {
   const open = Boolean(anchorEl);
   const popperId = open ? "simple-popper" : undefined;
 
-  const isIssueSelected = (issueToCheck: Issue) => {
+  const isIssueSelected = (issueToCheck: IssuePullRequestPresenter) => {
     return selectedIssues.findIndex((issue) => issue.id === issueToCheck.id) != -1;
   };
-  const removeIssue = async (issueToRemove: Issue) => {
+  const removeIssue = async (issueToRemove: IssuePullRequestPresenter) => {
     setSelectedIssues(selectedIssues.filter((issue) => issueToRemove.id !== issue.id));
     await assignIssuesToPullRequest({
       id: pr?.id ?? "",
@@ -69,32 +78,31 @@ export const PullRequestOverviewPage = () => {
         .filter((issue) => issueToRemove.id !== issue.id)
         .map((issue) => issue.id),
     });
-    queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
-  const AddIssue = async (issueToAdd: Issue) => {
+  const AddIssue = async (issueToAdd: IssuePullRequestPresenter) => {
     setSelectedIssues([...selectedIssues, issueToAdd]);
     await assignIssuesToPullRequest({
       id: pr?.id ?? "",
       issueIds: [...selectedIssues, issueToAdd].map((issue) => issue.id),
     });
-    queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
   useEffect(() => {
-    setSelectedIssues(Array.isArray(pr?.issues) ? pr.issues : []);
-    setSelectedMembers(Array.isArray(pr?.assignees) ? pr.assignees.map(item => item.member) : []);
-    setSelectedMilestone(pr?.milestone?.id ?? "")
-  }, [pr])
+    setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
+    setSelectedMembers(pr?.assignees == undefined ? [] : pr?.assignees);
+    setSelectedMilestoneId(pr?.milestone?.id ?? "");
+  }, [pr]);
 
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
-  const [selectedMilestone, setSelectedMilestone] = React.useState(pr?.milestone?.id ?? "");
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
   const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
-    setSelectedMilestone(event.target.value);
+    setSelectedMilestoneId(event.target.value);
     if (pr?.milestone) {
       await unassignMilestoneFromPullRequest({
         id: pr?.id ?? "",
@@ -105,13 +113,12 @@ export const PullRequestOverviewPage = () => {
         milestoneId: event.target.value,
       });
     }
-    queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
   const openSelectMergeTypeForm = async () => {
     setOpenForm(true);
   };
-
 
   const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
   const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
@@ -120,36 +127,54 @@ export const PullRequestOverviewPage = () => {
   const openAssignee = Boolean(anchorElAssignee);
   const popperIdAssignee = open ? "simple-popper" : undefined;
 
-  const { data: repositoryMembers } = useGetRepositoryMembers(
-    selectedRepository.id ?? ""
-  );
-  const { mutateAsync: assignUsersToPullRequest } = useAssignUsersToPullRequest();
+  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
+  const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } =
+    useAssignUsersToPullRequest();
   const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
   const isMemberSelected = (memberToCheck: RepositoryMemberPresenter) => {
-    return selectedMembers.findIndex((member) => member.id === memberToCheck.memberId) != -1;
+    return selectedMembers.findIndex((member) => member.id === memberToCheck.id) != -1;
   };
 
   const removeMember = async (memberToRemove: RepositoryMemberPresenter) => {
-    setSelectedMembers(selectedMembers.filter((member) => memberToRemove.memberId !== member.id));
-    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: selectedMembers.filter((member) => memberToRemove.memberId !== member.id).map(member => member.id)})
-    queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    setSelectedMembers(selectedMembers.filter((member) => memberToRemove.id !== member.id));
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: selectedMembers
+        .filter((member) => memberToRemove.id !== member.id)
+        .map((member) => member.id),
+    });
+    if (!isErrorUpdateAssignee) {
+      toast({
+        title: "User successfully unassigned!",
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
   const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
     setSelectedMembers([...selectedMembers, memberToAdd]);
-    await assignUsersToPullRequest({id: pr?.id ?? "", assigneeIds: [...selectedMembers, memberToAdd].map(member => member.id)})
-    queryClient.invalidateQueries(["repository-pull-request", id]);
-    queryClient.invalidateQueries(["pull-request-events", id])
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: [...selectedMembers, memberToAdd].map((member) => member.id),
+    });
+    if (!isErrorUpdateAssignee) {
+      toast({
+        title: "User successfully assigned!",
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
   const handleMergePullRequest = async (mergeType: MergeType) => {
     await mergePullRequest({ repositoryId: repository.id, pullRequestId: pr?.id ?? "", mergeType });
-    queryClient.invalidateQueries(["repository-pull-request", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
   return (
-    <div className="p-10">
+    <div className="pt-12 w-[1028px] mx-auto">
       <div className="w-full flex flex-col">
-        <div className="flex items-center gap-4 pt-4 pb-2">
+        <div className="flex items-center gap-4 pb-2">
           <div className="text-3xl text-white">{pr?.title ?? ""}</div>
           <div className="text-3xl text-gray-500">#{pr?.number}</div>
         </div>
@@ -170,7 +195,7 @@ export const PullRequestOverviewPage = () => {
             </div>
           )}
           <div>
-            <span className="font-bold">{pr?.events[0].creator.username} </span> wants to merge into{" "}
+            <span className="font-bold">{pr?.events[0].creator} </span> wants to merge into{" "}
             {pr?.toBranch} from {pr?.fromBranch}
           </div>
         </div>
@@ -179,68 +204,65 @@ export const PullRequestOverviewPage = () => {
 
       <div className="flex flex-col">
         <div className="flex">
-          <div className="w-[70%] flex flex-col pl-14 ">
+          <div className="flex flex-col flex-grow max-h-[350px] overflow-y-auto mr-4">
             {prEvents?.map((event) => (
               <div key={event.id} className="mt-1">
-                <span className="text-white text-lg font-bold">{event.creator.username}</span>
+                <span className="text-white text-lg font-bold">{event.creator}</span>
                 <span className="text-gray-500"> {event.title}</span>
                 <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
               </div>
             ))}
           </div>
-          <div className="w-[20%]">
-          
-          <div className="flex mt-5">
+          <div className="w-[285px]">
+            <div className="flex mt-5">
               <div className="text-gray-600">Assignees</div>
-                <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
-                  <PlusIcon color="white" />
-                </button>
-              </div>
-              <Popper
-                id={popperIdAssignee}
-                open={openAssignee}
-                anchorEl={anchorElAssignee}
-                className="bg-gray-700 rounded w-[200px] p-4"
-              >
-                <div className="text-white">
-                  {repositoryMembers.map((member: RepositoryMemberPresenter) => (
-                    <div className="flex gap-2" key={member.id}>
-                      <div>
-                        {member.username}
+              <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdAssignee}
+              open={openAssignee}
+              anchorEl={anchorElAssignee}
+              className="bg-gray-700 rounded w-[200px] p-4"
+            >
+              <div className="text-white">
+                {repositoryMembers.map((member: RepositoryMemberPresenter) => (
+                  <div className="flex gap-2" key={member.id}>
+                    <div>{member.username}</div>
+                    {isMemberSelected(member) ? (
+                      <div onClick={() => removeMember(member)}>
+                        <Trash2 color="white" />
                       </div>
-                      {isMemberSelected(member) ? (
-                        <div onClick={() => removeMember(member)}>
-                          <Trash2 color="white" />
-                        </div>
-                      ) : (
-                        <div onClick={() => AddMember(member)}>
-                          <PlusIcon color="white" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Popper>
-              <div className="p-1">
-                {selectedMembers.map((member) => (
+                    ) : (
+                      <div onClick={() => AddMember(member)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="p-1">
+              {selectedMembers.map((member) => (
                 <div key={member.id} className="text-white text-l">
-                  {member.username} 
+                  {member.username}
                 </div>
               ))}
-              </div>
-
-          <div className="border"></div>
+            </div>
+            <div className="border"></div>
 
             <div>
               <div className="flex gap-2 mt-4">
                 <div className="text-gray-600">Milestone</div>
               </div>
+
               <FormControl fullWidth variant="standard">
                 <Select
-                  labelId="demo-simple-select-standard-label"
+                  label="demo-simple-select-standard-label"
                   defaultValue={pr?.milestone?.title ?? ""}
                   id="demo-simple-select-standard"
-                  value={selectedMilestone}
+                  value={selectedmilestoneId}
                   onChange={handleMilestoneChange}
                   className="bg-white"
                 >
@@ -248,31 +270,21 @@ export const PullRequestOverviewPage = () => {
                     <span>Clear</span>
                   </MenuItem>
                   {repositoryMilestones.map((milestone) => (
-                    <MenuItem
-                      key={milestone.id}
-                      value={milestone.id}
-                      className="w-full flex gap-3"
-                    >
+                    <MenuItem key={milestone.id} value={milestone.id} className="w-full flex gap-3">
                       <span>{milestone.title ?? ""}</span>
                       {milestone.closed ? (
-                        <span className="bg-red-600 text-white rounded-xl p-1">
-                          closed
-                        </span>
+                        <span className="bg-red-600 text-white rounded-xl p-1">closed</span>
                       ) : (
-                        <span className="bg-green-600 text-white rounded-xl p-1">
-                          open
-                        </span>
+                        <span className="bg-green-600 text-white rounded-xl p-1">open</span>
                       )}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-             
+
               <div className="mt-2">
-                {selectedMilestone && (
-                  <MilestoneProgressBar
-                    milestoneId={selectedMilestone}
-                  ></MilestoneProgressBar>
+                {selectedmilestoneId && (
+                  <MilestoneProgressBar milestoneId={selectedmilestoneId}></MilestoneProgressBar>
                 )}
               </div>
             </div>
@@ -280,18 +292,22 @@ export const PullRequestOverviewPage = () => {
             <div className="border mt-5 mb-5"></div>
             <div className="flex">
               <div className="text-gray-600">Issues</div>
-                <button aria-describedby={id} type="button" onClick={handleClick}>
-                  <PlusIcon color="white" />
-                </button>
-              </div>
-              <Popper
-                id={popperId}
-                open={open}
-                anchorEl={anchorEl}
-                className="bg-gray-700 rounded w-[200px] p-4"
-              >
-                <div className="text-white">
-                  {repositoryIssues.map((issue: Issue) => (
+              <button aria-describedby={id} type="button" onClick={handleClick}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperId}
+              open={open}
+              anchorEl={anchorEl}
+              className="bg-gray-700 rounded w-[200px] p-4"
+            >
+              <div className="text-white">
+                {repositoryIssues
+                  .map((issue) => {
+                    return mapIssueToPresenter(issue);
+                  })
+                  .map((issue: IssuePullRequestPresenter) => (
                     <div className="flex gap-2" key={issue.id}>
                       <div>
                         #{issue.number} {issue.title}
@@ -307,16 +323,16 @@ export const PullRequestOverviewPage = () => {
                       )}
                     </div>
                   ))}
-                </div>
-              </Popper>
-              <div className="p-1">
-                {selectedIssues.map((issue) => (
+              </div>
+            </Popper>
+            <div className="p-1">
+              {selectedIssues.map((issue) => (
                 <div key={issue.id} className="text-white text-l">
                   #{issue.number} {issue.title}
                 </div>
               ))}
-              </div>
             </div>
+          </div>
         </div>
         <div className="flex justify-center items-center h-full mt-10 gap-4">
           {pr?.state === 0 ? (

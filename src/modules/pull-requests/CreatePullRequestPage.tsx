@@ -24,6 +24,10 @@ import React from "react";
 import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIssues";
 import { Issue } from "../../store/model/issue.model";
 import { useCreatePullRequest } from "../../api/mutations/pull-request/useCreatePullRequest";
+import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
+import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
+import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
+import { Milestone } from "../../store/model/milestone.model";
 
 export type CreatePullRequestValues = {
   title: string;
@@ -31,23 +35,35 @@ export type CreatePullRequestValues = {
   fromBranchId: string;
   toBranchId: string;
   issueIds: string[];
+  assigneeIds: string[];
+  milestoneId?: string;
 };
 
 export const CreatePullRequestPage = () => {
   const { mutateAsync: createPullRequest } = useCreatePullRequest();
   const [fromBranchId, setFromBranchId] = useState("");
   const [toBranchId, setToBranchId] = useState("");
+  const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
   const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<RepositoryMemberPresenter[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
+  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
+  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
+  const [anchorElIssue, setAnchorElIssue] = React.useState<null | HTMLElement>(null);
+  const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
+  const handleClickIssue = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElIssue(anchorElIssue ? null : event.currentTarget);
+  };
+  const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
   };
   const { id } = useParams();
-  const open = Boolean(anchorEl);
-  const popperId = open ? "simple-popper" : undefined;
+  const openIssue = Boolean(anchorElIssue);
+  const openAssignee = Boolean(anchorElAssignee);
+  const popperIdIssue = openIssue ? "simple-popper" : undefined;
+  const popperIdAssignee = openAssignee ? "simple-popper" : undefined;
 
   const { data: repositoryBranches } = useGetAllRepositoryBranches(selectedRepository?.id ?? "");
 
@@ -83,6 +99,15 @@ export const CreatePullRequestPage = () => {
   }, [selectedIssues]);
 
   useEffect(() => {
+    setValue(
+      "assigneeIds",
+      selectedAssignees.map((assignee) => {
+        return assignee.memberId;
+      })
+    );
+  }, [selectedAssignees]);
+
+  useEffect(() => {
     setValue("fromBranchId", fromBranchId);
   }, [fromBranchId]);
 
@@ -90,14 +115,20 @@ export const CreatePullRequestPage = () => {
     setValue("toBranchId", toBranchId);
   }, [toBranchId]);
 
+  useEffect(() => {
+    setValue("milestoneId", selectedmilestoneId == "" ? undefined : selectedmilestoneId);
+  }, [selectedmilestoneId]);
+
   const handleOnSubmit = async (values: CreatePullRequestValues) => {
     await createPullRequest({
       title: values.title,
-      description: values.description ?? "",
+      description: values.description,
       repositoryId: selectedRepository.id,
       fromBranchId: values.fromBranchId,
       toBranchId: values.toBranchId,
       issueIds: values.issueIds,
+      assigneeIds: values.assigneeIds,
+      milestoneId: values.milestoneId,
     });
   };
 
@@ -111,8 +142,20 @@ export const CreatePullRequestPage = () => {
     setSelectedIssues([...selectedIssues, issueToAdd]);
   };
 
+  const isAssigneeSelected = (assigneeToCheck: RepositoryMemberPresenter) => {
+    return selectedAssignees.findIndex((assignee) => assignee.id === assigneeToCheck.id) != -1;
+  };
+  const removeAssignee = (assigneeToRemove: RepositoryMemberPresenter) => {
+    setSelectedAssignees(
+      selectedAssignees.filter((assignee) => assigneeToRemove.id !== assignee.id)
+    );
+  };
+  const AddAssignee = (assigneeToAdd: RepositoryMemberPresenter) => {
+    setSelectedAssignees([...selectedAssignees, assigneeToAdd]);
+  };
+
   return (
-    <div className="p-20">
+    <div className="pt-12 w-[1028px] mx-auto">
       <div className="pb-6 border-b border-gray-600 flex justify-between">
         <p className="text-white text-2xl">New pull request</p>
         <div className="flex gap-4">
@@ -163,56 +206,134 @@ export const CreatePullRequestPage = () => {
         </div>
       </div>
 
-      <div className=" flex flex-col pt-6 pb-6 border-b border-gray-600">
-        <Input
-          label="Add a title"
-          placeholder="Title"
-          className="w-[60%]"
-          {...register("title")}
-          hasError={errors.title}
-          errorMessage={errors.title?.message}
-        />
-        <span className="text-white">Add a description</span>
-        <textarea className="w-[60%]" {...register("description")} />
-      </div>
-      <div>
-        <div className="flex gap-2 pt-10">
-          <div className="text-gray-600">Issues</div>
-          <button aria-describedby={id} type="button" onClick={handleClick}>
-            <PlusIcon color="white" />
-          </button>
+      <div className="pt-6 pb-6 border-b border-gray-600 flex gap-12">
+        <div className="flex flex-col flex-grow">
+          <Input
+            label="Add a title"
+            placeholder="Title"
+            className="w-full"
+            {...register("title")}
+            hasError={errors.title}
+            errorMessage={errors.title?.message}
+          />
+          <span className="text-white">Add a description</span>
+          <textarea className="w-full rounded-sm" {...register("description")} />
         </div>
-        <Popper
-          id={popperId}
-          open={open}
-          anchorEl={anchorEl}
-          className="bg-gray-700 rounded w-[200px] p-4"
-        >
-          <div className="text-white">
-            {repositoryIssues.map((issue: Issue) => (
-              <div className="flex gap-2">
-                <div>
-                  #{issue.number} {issue.title}
-                </div>
-                {isIssueSelected(issue) ? (
-                  <div onClick={() => removeIssue(issue)}>
-                    <Trash2 color="white" />
+        <div className="flex-grow pr-10 flex gap-4">
+          <div className="flex-grow">
+            <div>
+              <span className="text-white text-lg font-bold">Selected issues :</span>
+              <div className="p-2">
+                {selectedIssues.map((issue) => (
+                  <div className="text-white text-sm" key={issue.id}>
+                    #{issue.number} {issue.title}
                   </div>
-                ) : (
-                  <div onClick={() => AddIssue(issue)}>
-                    <PlusIcon color="white" />
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </Popper>
-        <div className="p-2">
-          {selectedIssues.map((issue) => (
-            <div className="text-white text-xl">
-              #{issue.number} {issue.title}
             </div>
-          ))}
+            <div>
+              <span className="text-white text-lg font-bold">Selected assignees :</span>
+              <div className="p-2">
+                {selectedAssignees.map((assignee) => (
+                  <div className="text-white text-sm" key={assignee.id}>
+                    {assignee.username}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex-grow w-[212.63px]">
+            <span className="text-white text-lg font-bold mb-1"> Pick milestone</span>
+            <Select
+              onValueChange={async (value: string) => {
+                setSelectedMilestoneId(value);
+              }}
+              value={selectedmilestoneId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pick milestone" />
+              </SelectTrigger>
+              <SelectContent>
+                {repositoryMilestones?.map((milestone: Milestone) => {
+                  return (
+                    <SelectItem key={milestone.id} value={milestone.id}>
+                      {milestone.title}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <div className="flex justify-end">
+              <span
+                className="text-gray-600 text-sm cursor-pointer"
+                onClick={() => {
+                  setSelectedMilestoneId("");
+                }}
+              >
+                clear milestone
+              </span>
+            </div>
+            <div className="flex gap-2 justify-end my-2">
+              <div className="text-gray-500">Issues</div>
+              <button aria-describedby={id} type="button" onClick={handleClickIssue}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdIssue}
+              open={openIssue}
+              anchorEl={anchorElIssue}
+              className="bg-gray-700 rounded w-[250px] p-4"
+            >
+              <div className="text-white flex flex-col gap-2">
+                {repositoryIssues.map((issue: Issue) => (
+                  <div className="flex gap-2 justify-end" key={issue.id}>
+                    <div>
+                      #{issue.number} {issue.title}
+                    </div>
+                    {isIssueSelected(issue) ? (
+                      <div onClick={() => removeIssue(issue)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddIssue(issue)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+            <div className="flex gap-2 justify-end">
+              <div className="text-gray-500">Assignees</div>
+              <button aria-describedby={id} type="button" onClick={handleClickAssignee}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdAssignee}
+              open={openAssignee}
+              anchorEl={anchorElAssignee}
+              className="bg-gray-700 rounded w-[250px] p-4"
+            >
+              <div className="text-white flex flex-col gap-2">
+                {repositoryMembers.map((member: RepositoryMemberPresenter) => (
+                  <div className="flex gap-2 justify-end" key={member.memberId}>
+                    <div>{member.username}</div>
+                    {isAssigneeSelected(member) ? (
+                      <div onClick={() => removeAssignee(member)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddAssignee(member)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+          </div>
         </div>
       </div>
       <div className="flex justify-end pt-6">

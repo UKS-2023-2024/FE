@@ -7,16 +7,14 @@ import { useGetRepositoryPullRequests } from "../../api/query/pull-request/useGe
 
 export const RepositoryPullRequestPage = () => {
   const [selectedRepository] = useAtom(currentRepositoryAtom);
-
+  const navigate = useNavigate();
+  const { name } = useParams();
   const { data: repositoryPullRequests } = useGetRepositoryPullRequests(
     selectedRepository.id ?? ""
   );
-  const navigate = useNavigate();
-  const { name } = useParams();
-
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="w-[80%] flex gap-2 p-4">
+    <div className="w-[1028px] mx-auto pt-12">
+      <div className="flex gap-2 mb-4">
         <Button onClick={() => navigate(`/repository/${name}/milestones`)}>Milestones</Button>
         <Button onClick={() => navigate(`/repository/${name}/pull-requests/new`)}>
           New Pull request
