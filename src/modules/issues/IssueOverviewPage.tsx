@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
 import { PlusIcon, Trash2, SmilePlusIcon } from "lucide-react";
-import React, { ReactPropTypes } from "react";
+import React, { ReactPropTypes, useState } from "react";
 import {
   FormControl,
   MenuItem,
@@ -36,6 +36,7 @@ import { Label } from "../../store/model/label.model";
 import { Issue } from "../../store/model/issue.model";
 import { useAssignLabelToIssue } from "../../api/mutations/label/useAssignLabelToIssue";
 import { useUnassignLabelFromIssue } from "../../api/mutations/label/useUnassignLabelFromIssue";
+import { Input } from "../../components/input/Input";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -44,6 +45,8 @@ export const IssueOverviewPage = () => {
   const [selectedRepository] = useAtom(currentRepositoryAtom);
   const [currentUser] = useAtom(currentUserAtom);
 
+  const [search, setSearch] = useState<string>("");
+
   const { data: issue } = useGetRepositoryIssue(id ?? "");
   const { data: repositoryMembers } = useGetRepositoryMembers(
     selectedRepository.id ?? ""
@@ -51,7 +54,10 @@ export const IssueOverviewPage = () => {
   const { data: repositoryMilestones } =
     useGetRepositoryMilestones(selectedRepository);
   const { data: issueEvents } = useGetIssueEvents(id ?? "");
-  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository);
+  const { data: repositoryLabels } = useGetRepositoryLabels(
+    selectedRepository,
+    search
+  );
 
   const { mutateAsync: assignIssueToUser } = useAssignIssueToUser();
   const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
@@ -387,6 +393,10 @@ export const IssueOverviewPage = () => {
     navigate(`/repository/${selectedRepository.name}/issues/labels`);
   };
 
+  const handleFilterLabels = (searchValue: string) => {
+    setSearch(searchValue);
+  };
+
   return (
     <div className="p-10">
       <div className="w-full flex flex-col">
@@ -532,6 +542,11 @@ export const IssueOverviewPage = () => {
               className="bg-gray-700 rounded w-[220px] p-4"
             >
               <div className="flex flex-col gap-2 text-white">
+                <Input
+                  onChange={(e) => handleFilterLabels(e.target.value)}
+                  placeholder="Filter labels"
+                  className="text-black"
+                ></Input>
                 {repositoryLabels.map((label) => (
                   <div className={`flex justify-between gap-2 items-center`}>
                     <div
