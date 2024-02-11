@@ -3,17 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Repository } from "../../../store/model/repository.model";
 import { Label } from "../../../store/model/label.model";
 
-export const useGetRepositoryLabels = (
+export const useSearchLabels = (
   repository: Repository | null,
-  search: string
+  searchValue: string
 ) => {
   const { axios } = useAxios();
   return useQuery<Label[]>({
     initialData: [],
-    queryKey: ["repository-labels", repository?.id, search],
+    queryKey: ["repository-labels", repository?.id],
     queryFn: () =>
       axios
-        .get(`labels/${repository?.id ?? ""}/defaults?search=${search}`)
+        .get(`labels/${repository?.id ?? ""}?search=${searchValue}`)
         .then((res) => res.data),
   });
 };

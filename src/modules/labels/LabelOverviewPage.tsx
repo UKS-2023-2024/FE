@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 import { currentRepositoryAtom } from "../../store/store";
 import { useAtom } from "jotai";
@@ -11,7 +11,13 @@ import { LabelOverview } from "../../components/labels/LabelOverview";
 export const LabelOverviewPage = () => {
   const queryClient = useQueryClient();
   const [selectedRepository] = useAtom(currentRepositoryAtom);
-  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository);
+  const [search, setSearch] = useState<string>("");
+
+  const { data: repositoryLabels } = useGetRepositoryLabels(
+    selectedRepository,
+    search
+  );
+
   const { mutateAsync: createLabel } = useCreateLabel();
 
   const [isNewLabelFormVisible, setIsNewLabelFormVisible] =
@@ -36,9 +42,17 @@ export const LabelOverviewPage = () => {
     queryClient.invalidateQueries(["repository-labels", selectedRepository.id]);
   };
 
+  const handleSearchLabels = async (searchValue: string) => {
+    setSearch(searchValue);
+  };
+
   return (
     <div className="flex flex-col p-16">
-      <div className="w-full flex justify-end p-2">
+      <div className="w-full flex justify-between p-2">
+        <Input
+          onChange={(e) => handleSearchLabels(e.target.value)}
+          placeholder="Search labels"
+        ></Input>
         <Button onClick={setFormVisibility} className="w-[100px]">
           New label
         </Button>
