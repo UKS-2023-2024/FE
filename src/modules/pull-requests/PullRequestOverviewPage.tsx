@@ -38,42 +38,84 @@ export const PullRequestOverviewPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { mutateAsync: mergePullRequest } = useMergePullRequest();
-  const [repository] = useAtom(currentRepositoryAtom);
+
   const [openForm, setOpenForm] = useState(false);
+  const [search, setSearch] = useState<string>("");
+
+  const [repository] = useAtom(currentRepositoryAtom);
+  const [selectedRepository] = useAtom(currentRepositoryAtom);
+  const [selectedIssues, setSelectedIssues] = useState<IssuePullRequestPresenter[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
+  const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
 
   const { data: pr } = useGetPullRequest(id ?? "");
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
+  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
+  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
+  const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
+  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
 
+  const { mutateAsync: mergePullRequest } = useMergePullRequest();
   const { mutateAsync: closePr } = useClosePullRequest();
   const { mutateAsync: reopenPr } = useReopenPullRequest();
-  const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
-
-  const handleCloseIssue = async () => {
-    await closePr(pr?.id ?? "");
-    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
-    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
-  };
-
-  const handleReopenIssue = async () => {
-    await reopenPr(pr?.id ?? "");
-    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
-    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
-  };
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
-  const [selectedIssues, setSelectedIssues] = useState<IssuePullRequestPresenter[]>([]);
-  const [selectedRepository] = useAtom(currentRepositoryAtom);
-  const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
+  const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
+  const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
+  const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } = useAssignUsersToPullRequest();
+  const { mutateAsync: assignLabelsToPullRequest} =useAssignLabelsToPullRequest();
+
+  useEffect(() => {
+    setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
+    setSelectedMembers(pr?.assignees == undefined ? [] : pr?.assignees);
+    setSelectedMilestoneId(pr?.milestone?.id ?? "");
+    setSelectedLabels(pr?.labels == undefined ? [] : pr?.labels)
+  }, [pr]);
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
+  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(null);
+
+  const open = Boolean(anchorEl);
+  const openAssignee = Boolean(anchorElAssignee);
+  const labelPopperOpen = Boolean(labelPopper);
+
+  const popperId = open ? "simple-popper" : undefined;
+  const popperIdAssignee = openAssignee ? "simple-popper" : undefined;
+  const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
-  const open = Boolean(anchorEl);
-  const popperId = open ? "simple-popper" : undefined;
+
+  const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
+  };
+
+  const handleAddLabelClick = (event: React.MouseEvent<HTMLElement>) => {
+    setLabelPopper(labelPopper ? null : event.currentTarget);
+  };
+
+  const handleLabelsClick = () => {
+    navigate(`/repository/${selectedRepository.name}/issues/labels`);
+  };
+
+  const handleFilterLabels = (searchValue: string) => {
+    setSearch(searchValue);
+  };
 
   const isIssueSelected = (issueToCheck: IssuePullRequestPresenter) => {
     return selectedIssues.findIndex((issue) => issue.id === issueToCheck.id) != -1;
   };
+
+  const isMemberSelected = (memberToCheck: RepositoryMemberPresenter) => {
+    return selectedMembers.findIndex((member) => member.id === memberToCheck.id) != -1;
+  };
+
+  const isLabelSelected = (labelToCheck: Label) => {
+    return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
+  };
+
   const removeIssue = async (issueToRemove: IssuePullRequestPresenter) => {
     setSelectedIssues(selectedIssues.filter((issue) => issueToRemove.id !== issue.id));
     await assignIssuesToPullRequest({
@@ -95,16 +137,60 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
-  useEffect(() => {
-    setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
-    setSelectedMembers(pr?.assignees == undefined ? [] : pr?.assignees);
-    setSelectedMilestoneId(pr?.milestone?.id ?? "");
-    setSelectedLabels(pr?.labels == undefined ? [] : pr?.labels)
-  }, [pr]);
+  const removeMember = async (memberToRemove: RepositoryMemberPresenter) => {
+    setSelectedMembers(selectedMembers.filter((member) => memberToRemove.id !== member.id));
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: selectedMembers
+        .filter((member) => memberToRemove.id !== member.id)
+        .map((member) => member.id),
+    });
+    if (!isErrorUpdateAssignee) {
+      toast({
+        title: "User successfully unassigned!",
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
 
-  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
-  const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
-  const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
+  const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
+    setSelectedMembers([...selectedMembers, memberToAdd]);
+    await assignUsersToPullRequest({
+      id: pr?.id ?? "",
+      assigneeIds: [...selectedMembers, memberToAdd].map((member) => member.id),
+    });
+    if (!isErrorUpdateAssignee) {
+      toast({
+        title: "User successfully assigned!",
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
+
+  const handleUnassignLabel= async (labelToRemove: Label) => {
+    setSelectedLabels(selectedLabels.filter((label) => labelToRemove.id !== label.id));
+    await assignLabelsToPullRequest({
+      id: pr?.id ?? "",
+      labelIds: selectedLabels
+        .filter((label) => labelToRemove.id !== label.id)
+        .map((label) => label.id),
+    });
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
+
+
+  const handleAssignLabel = async (labelToAdd: Label) => {
+    setSelectedLabels([...selectedLabels, labelToAdd]);
+    await assignLabelsToPullRequest({
+      id: pr?.id ?? "",
+      labelIds: [...selectedLabels, labelToAdd].map((label) => label.id),
+    });
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
     setSelectedMilestoneId(event.target.value);
@@ -125,108 +211,23 @@ export const PullRequestOverviewPage = () => {
     setOpenForm(true);
   };
 
-  const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
-  const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
-  };
-  const openAssignee = Boolean(anchorElAssignee);
-  const popperIdAssignee = open ? "simple-popper" : undefined;
-
-  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
-  const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } =
-    useAssignUsersToPullRequest();
-  const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
-  const isMemberSelected = (memberToCheck: RepositoryMemberPresenter) => {
-    return selectedMembers.findIndex((member) => member.id === memberToCheck.id) != -1;
-  };
-
-  const removeMember = async (memberToRemove: RepositoryMemberPresenter) => {
-    setSelectedMembers(selectedMembers.filter((member) => memberToRemove.id !== member.id));
-    await assignUsersToPullRequest({
-      id: pr?.id ?? "",
-      assigneeIds: selectedMembers
-        .filter((member) => memberToRemove.id !== member.id)
-        .map((member) => member.id),
-    });
-    if (!isErrorUpdateAssignee) {
-      toast({
-        title: "User successfully unassigned!",
-      });
-    }
-    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
-    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
-  };
-  const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
-    setSelectedMembers([...selectedMembers, memberToAdd]);
-    await assignUsersToPullRequest({
-      id: pr?.id ?? "",
-      assigneeIds: [...selectedMembers, memberToAdd].map((member) => member.id),
-    });
-    if (!isErrorUpdateAssignee) {
-      toast({
-        title: "User successfully assigned!",
-      });
-    }
-    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
-    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
-  };
-
   const handleMergePullRequest = async (mergeType: MergeType) => {
     await mergePullRequest({ repositoryId: repository.id, pullRequestId: pr?.id ?? "", mergeType });
     queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
-  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(
-    null
-  );
-  const handleAddLabelClick = (event: React.MouseEvent<HTMLElement>) => {
-    setLabelPopper(labelPopper ? null : event.currentTarget);
-  };
-  const labelPopperOpen = Boolean(labelPopper);
-  const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
-  const { mutateAsync: assignLabelsToPullRequest} =useAssignLabelsToPullRequest();
-  const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
-  const isLabelSelected = (labelToCheck: Label) => {
-    return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
-  };
-
-  const [search, setSearch] = useState<string>("");
-  const { data: repositoryLabels } = useGetRepositoryLabels(
-    selectedRepository,
-    search
-  );
-
-  const handleLabelsClick = () => {
-    navigate(`/repository/${selectedRepository.name}/issues/labels`);
-  };
-
-  const handleFilterLabels = (searchValue: string) => {
-    setSearch(searchValue);
-  };
-
-  const handleAssignLabel = async (labelToAdd: Label) => {
-    setSelectedLabels([...selectedLabels, labelToAdd]);
-    await assignLabelsToPullRequest({
-      id: pr?.id ?? "",
-      labelIds: [...selectedLabels, labelToAdd].map((label) => label.id),
-    });
+  const handleClosePr = async () => {
+    await closePr(pr?.id ?? "");
     queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
-  const handleUnassignLabel= async (labelToRemove: Label) => {
-    setSelectedLabels(selectedLabels.filter((label) => labelToRemove.id !== label.id));
-    await assignLabelsToPullRequest({
-      id: pr?.id ?? "",
-      labelIds: selectedLabels
-        .filter((label) => labelToRemove.id !== label.id)
-        .map((label) => label.id),
-    });
+  const handleReopenPr = async () => {
+    await reopenPr(pr?.id ?? "");
     queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
-
 
   return (
     <div className="pt-12 w-[1028px] mx-auto">
@@ -451,9 +452,9 @@ export const PullRequestOverviewPage = () => {
         </div>
         <div className="flex justify-center items-center h-full mt-10 gap-4">
           {pr?.state === 0 ? (
-            <Button onClick={handleCloseIssue}>Close pull request</Button>
+            <Button onClick={handleClosePr}>Close pull request</Button>
           ) : (
-            <Button onClick={handleReopenIssue}>Reopen pull request</Button>
+            <Button onClick={handleReopenPr}>Reopen pull request</Button>
           )}
           <Button onClick={openSelectMergeTypeForm}>Merge pull request</Button>
         </div>
