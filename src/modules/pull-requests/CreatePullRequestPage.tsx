@@ -29,6 +29,7 @@ import { useGetRepositoryMembers } from "../../api/query/repository-member/useGe
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { Milestone } from "../../store/model/milestone.model";
 import { Label } from "../../store/model/label.model";
+import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 
 export type CreatePullRequestValues = {
   title: string;
@@ -50,9 +51,13 @@ export const CreatePullRequestPage = () => {
   const [selectedAssignees, setSelectedAssignees] = useState<RepositoryMemberPresenter[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
+
+  const [search, setSearch] = useState<string>("");
+
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
+  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
 
   const [anchorElIssue, setAnchorElIssue] = React.useState<null | HTMLElement>(null);
   const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
@@ -123,7 +128,7 @@ export const CreatePullRequestPage = () => {
         return label.id;
       })
     );
-  }, [selectedAssignees]);
+  }, [selectedLabels]);
 
   useEffect(() => {
     setValue("fromBranchId", fromBranchId);
@@ -176,9 +181,9 @@ export const CreatePullRequestPage = () => {
   const isLabelSelected = (labelToCheck: Label) => {
     return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
   };
-  const removeLabel = (assigneeToRemove: RepositoryMemberPresenter) => {
-    setSelectedAssignees(
-      selectedAssignees.filter((assignee) => assigneeToRemove.id !== assignee.id)
+  const removeLabel = (labelToRemove: Label) => {
+    setSelectedLabels(
+      selectedLabels.filter((label) => labelToRemove.id !== label.id)
     );
   };
   const AddLabel = (labelToAdd: Label) => {
@@ -272,17 +277,20 @@ export const CreatePullRequestPage = () => {
                 ))}
               </div>
             </div>
-          </div>
-          <div>
+            <div>
               <span className="text-white text-lg font-bold">Selected labels :</span>
               <div className="p-2">
                 {selectedLabels.map((label) => (
-                  <div className="text-white text-sm" key={label.id}>
-                    {label.title}
-                  </div>
+                  <div
+                  style={{ color: label.color, borderColor: label.color }}
+                  className="border rounded-lg p-2 text-xl mt-2"
+                >
+                  {label.title}
+                </div>
                 ))}
               </div>
-            </div>
+          </div>
+          </div>
           <div className="flex-grow w-[212.63px]">
             <span className="text-white text-lg font-bold mb-1"> Pick milestone</span>
             <Select
@@ -367,6 +375,41 @@ export const CreatePullRequestPage = () => {
                       </div>
                     ) : (
                       <div onClick={() => AddAssignee(member)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+
+            <div className="flex gap-2 justify-end">
+              <div className="text-gray-500">Labels</div>
+              <button aria-describedby={id} type="button" onClick={handleClickLabel}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdLabel}
+              open={openLabel}
+              anchorEl={anchorElLabel}
+              className="bg-gray-700 rounded w-[250px] p-4"
+            >
+              <div className="text-white flex flex-col gap-2">
+                {repositoryLabels.map((label: Label) => (
+                  <div className="flex gap-2 justify-end" key={label.id}>
+                    <div
+                        style={{ color: label.color, borderColor: label.color }}
+                        className="border rounded-lg p-2 text-xl"
+                      >
+                        {label.title}
+                      </div>
+                    {isLabelSelected(label) ? (
+                      <div onClick={() => removeLabel(label)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddLabel(label)}>
                         <PlusIcon color="white" />
                       </div>
                     )}
