@@ -3,4 +3,5 @@ export type UpdatePullRequestParams = {
   issueIds?: string[];
   milestoneId?: string;
   assigneeIds?: string[];
+  labelIds?: string[];
 };

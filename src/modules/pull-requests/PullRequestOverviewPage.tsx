@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { formatDate } from "../../utils/helper";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components";
@@ -7,7 +7,7 @@ import { useClosePullRequest } from "../../api/mutations/pull-request/useClosePu
 import { useReopenPullRequest } from "../../api/mutations/pull-request/useReopenPullRequest";
 import { useGetPullRequest } from "../../api/query/pull-request/useGetPullRequest";
 import { useGetPullRequestEvents } from "../../api/query/pull-request/useGetPullRequestEvents";
-import { FormControl, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
+import { FormControl, Input, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
 import { PlusIcon, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIssues";
@@ -29,10 +29,14 @@ import {
   mapIssueToPresenter,
 } from "../../store/model/pullRequest.model";
 import { useToast } from "../../components/toast";
+import { Label } from "../../store/model/label.model";
+import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
+import { useAssignLabelsToPullRequest } from "../../api/mutations/pull-request/useAssignLabelsToPullRequest";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutateAsync: mergePullRequest } = useMergePullRequest();
   const [repository] = useAtom(currentRepositoryAtom);
@@ -95,6 +99,7 @@ export const PullRequestOverviewPage = () => {
     setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
     setSelectedMembers(pr?.assignees == undefined ? [] : pr?.assignees);
     setSelectedMilestoneId(pr?.milestone?.id ?? "");
+    setSelectedLabels(pr?.labels == undefined ? [] : pr?.labels)
   }, [pr]);
 
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
@@ -171,6 +176,58 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
+
+  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(
+    null
+  );
+  const handleAddLabelClick = (event: React.MouseEvent<HTMLElement>) => {
+    setLabelPopper(labelPopper ? null : event.currentTarget);
+  };
+  const labelPopperOpen = Boolean(labelPopper);
+  const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
+  const { mutateAsync: assignLabelsToPullRequest} =useAssignLabelsToPullRequest();
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
+  const isLabelSelected = (labelToCheck: Label) => {
+    return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
+  };
+
+  const [search, setSearch] = useState<string>("");
+  const { data: repositoryLabels } = useGetRepositoryLabels(
+    selectedRepository,
+    search
+  );
+
+  const handleLabelsClick = () => {
+    navigate(`/repository/${selectedRepository.name}/issues/labels`);
+  };
+
+  const handleFilterLabels = (searchValue: string) => {
+    setSearch(searchValue);
+  };
+
+  const handleAssignLabel = async (labelToAdd: Label) => {
+    setSelectedLabels([...selectedLabels, labelToAdd]);
+    await assignLabelsToPullRequest({
+      id: pr?.id ?? "",
+      labelIds: [...selectedLabels, labelToAdd].map((label) => label.id),
+    });
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
+
+  const handleUnassignLabel= async (labelToRemove: Label) => {
+    setSelectedLabels(selectedLabels.filter((label) => labelToRemove.id !== label.id));
+    await assignLabelsToPullRequest({
+      id: pr?.id ?? "",
+      labelIds: selectedLabels
+        .filter((label) => labelToRemove.id !== label.id)
+        .map((label) => label.id),
+    });
+    queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
+    queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
+  };
+
+
   return (
     <div className="pt-12 w-[1028px] mx-auto">
       <div className="w-full flex flex-col">
@@ -253,6 +310,64 @@ export const PullRequestOverviewPage = () => {
             <div className="border"></div>
 
             <div>
+              <div className="flex gap-2 mt-4">
+                <div className="text-gray-600">Labels</div>
+                <button
+                  aria-describedby={id}
+                  type="button"
+                  onClick={handleAddLabelClick}
+                >
+                  <PlusIcon color="white" />
+                </button>
+              </div>
+              <Popper
+                id={labelPopperId}
+                open={labelPopperOpen}
+                anchorEl={labelPopper}
+                className="bg-gray-700 rounded w-[220px] p-4"
+              >
+                <div className="flex flex-col gap-2 text-white">
+                  <Input
+                    onChange={(e) => handleFilterLabels(e.target.value)}
+                    placeholder="Filter labels"
+                    className="text-black"
+                  ></Input>
+                  {repositoryLabels.map((label) => (
+                    <div key={label.id} className={`flex justify-between gap-2 items-center`}>
+                      <div
+                        style={{ color: label.color, borderColor: label.color }}
+                        className="border rounded-lg p-2 text-xl"
+                      >
+                        {label.title}
+                      </div>
+                      {isLabelSelected(label) ? (
+                        <div onClick={() => handleUnassignLabel(label)}>
+                          <Trash2 color="white" />
+                        </div>
+                      ) : (
+                        <div onClick={() => handleAssignLabel(label)}>
+                          <PlusIcon color="white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Popper>
+              <div className="flex flex-col gap-2 p-2">
+                {pr?.labels.map((label) => (
+                  <div
+                    style={{ color: label.color, borderColor: label.color }}
+                    className={`flex justify-center border rounded-lg p-2 text-xl`}
+                    key={label.id}
+                  >
+                    {label.title}
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleLabelsClick}>Labels</Button>
+              <div className="mt-5 border"></div>
+
+            
               <div className="flex gap-2 mt-4">
                 <div className="text-gray-600">Milestone</div>
               </div>
