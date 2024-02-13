@@ -28,6 +28,8 @@ import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepo
 import { useGetRepositoryMembers } from "../../api/query/repository-member/useGetRepositoryMembers";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { Milestone } from "../../store/model/milestone.model";
+import { Label } from "../../store/model/label.model";
+import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 
 export type CreatePullRequestValues = {
   title: string;
@@ -37,6 +39,7 @@ export type CreatePullRequestValues = {
   issueIds: string[];
   assigneeIds: string[];
   milestoneId?: string;
+  labelIds: string[];
 };
 
 export const CreatePullRequestPage = () => {
@@ -46,24 +49,35 @@ export const CreatePullRequestPage = () => {
   const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
   const [selectedIssues, setSelectedIssues] = useState<Issue[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<RepositoryMemberPresenter[]>([]);
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
   const [selectedRepository] = useAtom(currentRepositoryAtom);
+
+  const [search, setSearch] = useState<string>("");
+
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
+  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
 
   const [anchorElIssue, setAnchorElIssue] = React.useState<null | HTMLElement>(null);
   const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
+  const [anchorElLabel, setAnchorElLabel] = React.useState<null | HTMLElement>(null);
   const handleClickIssue = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElIssue(anchorElIssue ? null : event.currentTarget);
   };
   const handleClickAssignee = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElAssignee(anchorElAssignee ? null : event.currentTarget);
   };
+  const handleClickLabel = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElLabel(anchorElLabel ? null : event.currentTarget);
+  };
   const { id } = useParams();
   const openIssue = Boolean(anchorElIssue);
   const openAssignee = Boolean(anchorElAssignee);
+  const openLabel = Boolean(anchorElLabel);
   const popperIdIssue = openIssue ? "simple-popper" : undefined;
   const popperIdAssignee = openAssignee ? "simple-popper" : undefined;
+  const popperIdLabel = openLabel ? "simple-popper" : undefined;
 
   const { data: repositoryBranches } = useGetAllRepositoryBranches(selectedRepository?.id ?? "");
 
@@ -108,6 +122,15 @@ export const CreatePullRequestPage = () => {
   }, [selectedAssignees]);
 
   useEffect(() => {
+    setValue(
+      "labelIds",
+      selectedLabels.map((label) => {
+        return label.id;
+      })
+    );
+  }, [selectedLabels]);
+
+  useEffect(() => {
     setValue("fromBranchId", fromBranchId);
   }, [fromBranchId]);
 
@@ -129,6 +152,7 @@ export const CreatePullRequestPage = () => {
       issueIds: values.issueIds,
       assigneeIds: values.assigneeIds,
       milestoneId: values.milestoneId,
+      labelIds: values.labelIds
     });
   };
 
@@ -152,6 +176,18 @@ export const CreatePullRequestPage = () => {
   };
   const AddAssignee = (assigneeToAdd: RepositoryMemberPresenter) => {
     setSelectedAssignees([...selectedAssignees, assigneeToAdd]);
+  };
+
+  const isLabelSelected = (labelToCheck: Label) => {
+    return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
+  };
+  const removeLabel = (labelToRemove: Label) => {
+    setSelectedLabels(
+      selectedLabels.filter((label) => labelToRemove.id !== label.id)
+    );
+  };
+  const AddLabel = (labelToAdd: Label) => {
+    setSelectedLabels([...selectedLabels, labelToAdd]);
   };
 
   return (
@@ -241,6 +277,19 @@ export const CreatePullRequestPage = () => {
                 ))}
               </div>
             </div>
+            <div>
+              <span className="text-white text-lg font-bold">Selected labels :</span>
+              <div className="p-2">
+                {selectedLabels.map((label) => (
+                  <div
+                  style={{ color: label.color, borderColor: label.color }}
+                  className="border rounded-lg p-2 text-xl mt-2"
+                >
+                  {label.title}
+                </div>
+                ))}
+              </div>
+          </div>
           </div>
           <div className="flex-grow w-[212.63px]">
             <span className="text-white text-lg font-bold mb-1"> Pick milestone</span>
@@ -326,6 +375,41 @@ export const CreatePullRequestPage = () => {
                       </div>
                     ) : (
                       <div onClick={() => AddAssignee(member)}>
+                        <PlusIcon color="white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Popper>
+
+            <div className="flex gap-2 justify-end">
+              <div className="text-gray-500">Labels</div>
+              <button aria-describedby={id} type="button" onClick={handleClickLabel}>
+                <PlusIcon color="white" />
+              </button>
+            </div>
+            <Popper
+              id={popperIdLabel}
+              open={openLabel}
+              anchorEl={anchorElLabel}
+              className="bg-gray-700 rounded w-[250px] p-4"
+            >
+              <div className="text-white flex flex-col gap-2">
+                {repositoryLabels.map((label: Label) => (
+                  <div className="flex gap-2 justify-end" key={label.id}>
+                    <div
+                        style={{ color: label.color, borderColor: label.color }}
+                        className="border rounded-lg p-2 text-xl"
+                      >
+                        {label.title}
+                      </div>
+                    {isLabelSelected(label) ? (
+                      <div onClick={() => removeLabel(label)}>
+                        <Trash2 color="white" />
+                      </div>
+                    ) : (
+                      <div onClick={() => AddLabel(label)}>
                         <PlusIcon color="white" />
                       </div>
                     )}
