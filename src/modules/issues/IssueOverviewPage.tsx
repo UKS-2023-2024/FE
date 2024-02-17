@@ -702,6 +702,12 @@ export const IssueOverviewPage = () => {
                   {formatDate(comment.createdAt)}
                 </div>
                 <div className="p-2">
+                  <Reply
+                    comment={comment}
+                    setCommentToReply={setCommentToReply}
+                    setReplyComment={setReplyComment}
+                    handleReplyToComment={handleReplyToComment}
+                  ></Reply>
                   <div className="text-xl p-4">{comment.content}</div>
                   <div className="flex gap-4">
                     {getUniqueValues(comment.reactions).map(
