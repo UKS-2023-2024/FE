@@ -11,4 +11,5 @@ export type Comment = {
   task: Issue;
   createdAt: Date;
   reactions: Reaction[];
+  parentId: string;
 };
