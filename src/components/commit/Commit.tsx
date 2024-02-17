@@ -40,30 +40,4 @@ export const Commit = ({ commit }: Props) => {
             </div>
         </div>
     </div>
-    // return <div className="w-1/2 border border-white min-h-10 flex flex-col gap-1 text-white m-auto p-2 rounded">
-    //     <div className="flex gap-1">
-    //         <span>Sha:</span>
-    //         <span>{commit.sha}</span>
-    //     </div>
-    //     <div className="flex gap-1">
-    //         <span>Created At:</span>
-    //         <span>{format(commit.createdAt, 'dd/MM/yyyy HH:mm')}</span>
-    //     </div>
-    //     <div className="flex gap-1">
-    //         <span>Committer:</span>
-    //         <span>{commit.committer ?? "Web Flow"}</span>
-    //     </div>
-    //     <div className="flex gap-1">
-    //         <span>Message:</span>
-    //         <span>{commit.message}</span>
-    //     </div>
-    //     <div className="flex gap-1">
-    //         <span>Additions:</span>
-    //         <span>{commit.additions}</span>
-    //     </div>
-    //     <div className="flex gap-1">
-    //         <span>Deletions:</span>
-    //         <span>{commit.deletions}</span>
-    //     </div>
-    // </div>
 }
