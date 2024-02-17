@@ -39,6 +39,8 @@ import { PullRequestOverviewPage } from "./modules/pull-requests/PullRequestOver
 import { LabelOverviewPage } from "./modules/labels/LabelOverviewPage";
 import { RepositoryBranchCommits } from "./modules/repository/branches/RepositoryBranchCommits";
 import { MilestoneOverviewPage } from "./modules/milestone/MilestoneOverviewPage";
+import { PullRequestChangesPreviewPage } from "./modules/pull-requests/PullRequestChangesPreviewPage";
+import { PullRequestCommitPreviewPage } from "./modules/pull-requests/PullRequestCommitPreviewPage";
 
 export const routes: RouteObject[] = [
   {
@@ -128,6 +130,14 @@ export const routes: RouteObject[] = [
           {
             path: "pull-requests/:id",
             element: <PullRequestOverviewPage />,
+          },
+          {
+            path: 'pull-requests/:id/preview',
+            element: <PullRequestChangesPreviewPage />
+          },
+          {
+            path: 'pull-requests/:id/commits',
+            element: <PullRequestCommitPreviewPage />
           },
           {
             path: "milestones",

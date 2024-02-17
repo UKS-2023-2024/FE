@@ -32,6 +32,8 @@ import { useToast } from "../../components/toast";
 import { Label } from "../../store/model/label.model";
 import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 import { useAssignLabelsToPullRequest } from "../../api/mutations/pull-request/useAssignLabelsToPullRequest";
+import { useGetPrCommits } from "../../api/query/pull-request/useGetPrCommits";
+import { Commit } from "../../components/commit/Commit";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
@@ -55,6 +57,7 @@ export const PullRequestOverviewPage = () => {
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
   const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
+  const { data: commits } = useGetPrCommits(id);
 
   const { mutateAsync: mergePullRequest } = useMergePullRequest();
   const { mutateAsync: closePr } = useClosePullRequest();
@@ -63,7 +66,7 @@ export const PullRequestOverviewPage = () => {
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
   const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
   const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } = useAssignUsersToPullRequest();
-  const { mutateAsync: assignLabelsToPullRequest} =useAssignLabelsToPullRequest();
+  const { mutateAsync: assignLabelsToPullRequest } = useAssignLabelsToPullRequest();
 
   useEffect(() => {
     setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
@@ -169,7 +172,7 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
-  const handleUnassignLabel= async (labelToRemove: Label) => {
+  const handleUnassignLabel = async (labelToRemove: Label) => {
     setSelectedLabels(selectedLabels.filter((label) => labelToRemove.id !== label.id));
     await assignLabelsToPullRequest({
       id: pr?.id ?? "",
@@ -271,6 +274,7 @@ export const PullRequestOverviewPage = () => {
               </div>
             ))}
           </div>
+
           <div className="w-[285px]">
             <div className="flex mt-5">
               <div className="text-gray-600">Assignees</div>
@@ -368,7 +372,7 @@ export const PullRequestOverviewPage = () => {
               <Button onClick={handleLabelsClick}>Labels</Button>
               <div className="mt-5 border"></div>
 
-            
+
               <div className="flex gap-2 mt-4">
                 <div className="text-gray-600">Milestone</div>
               </div>
@@ -450,6 +454,14 @@ export const PullRequestOverviewPage = () => {
             </div>
           </div>
         </div>
+        <div className="flex flex-col gap-1">
+          <div className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer" onClick={() => navigate('commits')}>
+            See Commits
+          </div>
+          <div className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer" onClick={() => navigate('preview')}>
+            See File Changes @@@
+          </div>
+        </div>
         <div className="flex justify-center items-center h-full mt-10 gap-4">
           {pr?.state === 0 ? (
             <Button onClick={handleClosePr}>Close pull request</Button>
@@ -458,6 +470,7 @@ export const PullRequestOverviewPage = () => {
           )}
           <Button onClick={openSelectMergeTypeForm}>Merge pull request</Button>
         </div>
+
         <SelectMergeTypeForm
           isOpen={openForm}
           setOpen={setOpenForm}
