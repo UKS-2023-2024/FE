@@ -31,6 +31,13 @@ export const FilePreview = ({ path, branchId }: Props) => {
     }, [file]);
     const imageExtensions = ['jpg', 'jpeg', 'png', 'svg']
 
+    const decodedContent = useMemo(() => {
+        if (!file) return null
+        if (file.encoding === 'base64')
+            return atob(file.content)
+        return file.content
+    }, [file])
+
 
     return <div className="w-3/4 mx-auto">
 
@@ -43,7 +50,7 @@ export const FilePreview = ({ path, branchId }: Props) => {
                 }
                 {
                     !imageExtensions.includes(extension) &&
-                    file?.content
+                    decodedContent
                 }
             </p>
         </div>
