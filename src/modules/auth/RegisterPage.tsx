@@ -4,16 +4,16 @@ import { useRegisterUser } from "../../api/mutations/useRegisterUser";
 import { useMemo, useState } from "react";
 import { useGetPrDiff } from "../../api/query/pull-request/useGetPrDiff";
 import { parseUnifiedDiff } from "../../utils/diff-parser";
-
+import { useNavigate } from "react-router-dom";
 
 export const RegisterPage = () => {
-  const { mutateAsync: registerUser } = useRegisterUser();
+  const { mutateAsync: registerUser, isError: isErrorRegister } = useRegisterUser();
   const { data: diffText } = useGetPrDiff();
   const [email, setEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [fullname, setFullname] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
     await registerUser({
@@ -22,17 +22,14 @@ export const RegisterPage = () => {
       username: username,
       password: password,
     });
+    if (!isErrorRegister) navigate("/");
   };
   return (
     <>
       <div className="w-full h-full flex justify-center bg-[#11151C]">
         <div className="w-1/2 flex flex-col items-center mt-20">
           <p className="text-white text-2xl mb-6">Register</p>
-          <Input
-            placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-1/2"
-          />
+          <Input placeholder="Email" onChange={(e) => setEmail(e.target.value)} className="w-1/2" />
           <Input
             placeholder="Username"
             onChange={(e) => setUsername(e.target.value)}
@@ -54,9 +51,7 @@ export const RegisterPage = () => {
           </Button>
         </div>
       </div>
-      <div>
-        {JSON.stringify(parseUnifiedDiff(diffText ?? ""), null, 4)}
-      </div>
+      <div>{JSON.stringify(parseUnifiedDiff(diffText ?? ""), null, 4)}</div>
     </>
   );
 };

@@ -152,7 +152,7 @@ export const CreatePullRequestPage = () => {
       issueIds: values.issueIds,
       assigneeIds: values.assigneeIds,
       milestoneId: values.milestoneId,
-      labelIds: values.labelIds
+      labelIds: values.labelIds,
     });
   };
 
@@ -182,9 +182,7 @@ export const CreatePullRequestPage = () => {
     return selectedLabels.findIndex((label) => label.id === labelToCheck.id) != -1;
   };
   const removeLabel = (labelToRemove: Label) => {
-    setSelectedLabels(
-      selectedLabels.filter((label) => labelToRemove.id !== label.id)
-    );
+    setSelectedLabels(selectedLabels.filter((label) => labelToRemove.id !== label.id));
   };
   const AddLabel = (labelToAdd: Label) => {
     setSelectedLabels([...selectedLabels, labelToAdd]);
@@ -279,17 +277,17 @@ export const CreatePullRequestPage = () => {
             </div>
             <div>
               <span className="text-white text-lg font-bold">Selected labels :</span>
-              <div className="p-2">
+              <div className="gap-2 flex flex-wrap w-[255px]">
                 {selectedLabels.map((label) => (
                   <div
-                  style={{ color: label.color, borderColor: label.color }}
-                  className="border rounded-lg p-2 text-xl mt-2"
-                >
-                  {label.title}
-                </div>
+                    style={{ color: label.color, borderColor: label.color }}
+                    className="border rounded-md px-2 text-md"
+                  >
+                    {label.title}
+                  </div>
                 ))}
               </div>
-          </div>
+            </div>
           </div>
           <div className="flex-grow w-[212.63px]">
             <span className="text-white text-lg font-bold mb-1"> Pick milestone</span>
@@ -399,11 +397,11 @@ export const CreatePullRequestPage = () => {
                 {repositoryLabels.map((label: Label) => (
                   <div className="flex gap-2 justify-end" key={label.id}>
                     <div
-                        style={{ color: label.color, borderColor: label.color }}
-                        className="border rounded-lg p-2 text-xl"
-                      >
-                        {label.title}
-                      </div>
+                      style={{ color: label.color, borderColor: label.color }}
+                      className="border rounded-md px-2 text-md"
+                    >
+                      {label.title}
+                    </div>
                     {isLabelSelected(label) ? (
                       <div onClick={() => removeLabel(label)}>
                         <Trash2 color="white" />

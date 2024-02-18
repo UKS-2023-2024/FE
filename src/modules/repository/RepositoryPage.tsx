@@ -30,11 +30,6 @@ export const RepositoryPage = () => {
           <Tab onClick={() => navigate(`/repository/${name}`)}>Code</Tab>
           <Tab onClick={() => navigate(`/repository/${name}/issues`)}>Issues</Tab>
           <Tab onClick={() => navigate(`/repository/${name}/pull-requests`)}>Pull requests</Tab>
-          <Tab>Actions</Tab>
-          <Tab>Projects</Tab>
-          <Tab>Wiki</Tab>
-          <Tab>Security</Tab>
-          <Tab>Insight</Tab>
           <Tab onClick={() => navigate(`/repository/${name}/settings`)}>Settings</Tab>
           <Tab onClick={() => navigate(`/repository/${name}/members`)}>Members</Tab>
         </ul>

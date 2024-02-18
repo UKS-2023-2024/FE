@@ -5,7 +5,7 @@ export type UpdateIssueParams = {
   repositoryId: string;
   assigneesIds: string[];
   labelsIds: string[];
-  milestoneId: string;
+  milestoneId?: string;
   state: number;
   number: number;
 };

@@ -13,8 +13,9 @@ export const RepositoryPullRequestPage = () => {
     selectedRepository.id ?? ""
   );
   return (
-    <div className="w-[1028px] mx-auto pt-12">
-      <div className="flex gap-2 mb-4">
+    <div className="w-[1028px] mx-auto pt-8">
+      <span className="text-white text-3xl font-bold">Pull requests</span>
+      <div className="flex gap-2 my-4">
         <Button onClick={() => navigate(`/repository/${name}/milestones`)}>Milestones</Button>
         <Button onClick={() => navigate(`/repository/${name}/pull-requests/new`)}>
           New Pull request
