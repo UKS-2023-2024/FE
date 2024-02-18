@@ -16,7 +16,7 @@ export const IssueOverview = ({ issue }: Props) => {
   };
 
   return (
-    <div className="w-[80%] border rounded p-6">
+    <div className="w-full border rounded p-6">
       <div
         onClick={() => navigate(`/repository/${name}/issues/${issue.id}`)}
         className="text-xl text-white cursor-pointer"
@@ -26,9 +26,7 @@ export const IssueOverview = ({ issue }: Props) => {
       <div className="text-gray-500">
         <span>
           #{issue.number} opened{" "}
-          {formatDate(
-            getOpenedIssueEvent(issue.events)?.createdAt ?? new Date()
-          ).toString() ?? ""}{" "}
+          {formatDate(getOpenedIssueEvent(issue.events)?.createdAt ?? new Date()).toString() ?? ""}{" "}
           by {getOpenedIssueEvent(issue.events)?.creator.username}
         </span>
       </div>

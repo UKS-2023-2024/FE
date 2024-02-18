@@ -6,15 +6,9 @@ import { currentRepositoryAtom, currentUserAtom } from "../../store/store";
 import { useAtom } from "jotai";
 import { RepositoryMemberPresenter } from "../../store/model/repositoryMember.model";
 import { useAssignIssueToUser } from "../../api/mutations/issue/useAssignIssueToUser";
-import { PlusIcon, Trash2, SmilePlusIcon, MessageCircle } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  FormControl,
-  MenuItem,
-  Popper,
-  Select,
-  SelectChangeEvent,
-} from "@mui/material";
+import { PlusIcon, Trash2, SmilePlusIcon } from "lucide-react";
+import React, { Fragment, useEffect, useState } from "react";
+import { FormControl, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { Event } from "../../store/model/event.model";
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
@@ -29,82 +23,16 @@ import { useAddIssueComment } from "../../api/mutations/comment/useAddIssueComme
 import EmojiPicker from "emoji-picker-react";
 import { useAddReaction } from "../../api/mutations/reaction/useAddReaction";
 import { Reaction } from "../../store/model/reaction.model";
-import { Comment } from "../../store/model/comment.model";
+import { Comment, CommentHierarchy } from "../../store/model/comment.model";
 import { useDeleteReaction } from "../../api/mutations/reaction/useDeleteReaction";
 import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 import { Label } from "../../store/model/label.model";
 import { useAssignLabelToIssue } from "../../api/mutations/label/useAssignLabelToIssue";
 import { useUnassignLabelFromIssue } from "../../api/mutations/label/useUnassignLabelFromIssue";
 import { Input } from "../../components/input/Input";
-import { useGetTaskQuotedComments } from "../../api/query/comment/useGetTaskQuotedComments";
-
-const CommentView = ({ comment, classname }) => {
-  return (
-    <div className={`m-4 pl-4 ${classname}`}>
-      <div>{comment.comment.content}</div>
-
-      {comment.parent && (
-        <CommentView
-          comment={comment.parent}
-          classname="text-gray-600 border-l-2"
-        />
-      )}
-    </div>
-  );
-};
-
-const Reply = ({
-  comment,
-  setCommentToReply,
-  setReplyComment,
-  handleReplyToComment,
-}) => {
-  const [isReplying, setIsReplying] = useState<boolean>(false);
-
-  const handleReplyClick = () => {
-    setIsReplying(true);
-    setCommentToReply(comment);
-  };
-
-  const handleCancelReplyToComment = () => {
-    setIsReplying(false);
-    setCommentToReply(null);
-  };
-
-  const handleReplyToCommentIntercept = () => {
-    handleReplyToComment();
-    handleCancelReplyToComment();
-  };
-
-  return (
-    <div className="flex ">
-      {!isReplying ? (
-        <Button className="ml-4">
-          <MessageCircle onClick={() => handleReplyClick()} />
-        </Button>
-      ) : (
-        <div className="flex items-center pl-4 gap-4">
-          <textarea
-            className="text-black"
-            onChange={(e) => setReplyComment(e.target.value)}
-          ></textarea>
-          <Button
-            className="h-[40px]"
-            onClick={() => handleReplyToCommentIntercept()}
-          >
-            Reply
-          </Button>
-          <Button
-            className="h-[40px]"
-            onClick={() => handleCancelReplyToComment()}
-          >
-            Cancel
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-};
+import { Reply } from "../../components/comment/Reply";
+import { CommentView } from "../../components/comment/CommentView";
+import { useGetTaskComments } from "../../api/query/comment/useGetTaskComments";
 
 export const IssueOverviewPage = () => {
   const { id } = useParams();
@@ -114,27 +42,19 @@ export const IssueOverviewPage = () => {
   const [currentUser] = useAtom(currentUserAtom);
 
   const [search, setSearch] = useState<string>("");
-  const [isReplying, setIsReplying] = useState<boolean>(false);
   const [commentToReply, setCommentToReply] = useState<any>();
   const [commentForReaction, setCommentForReaction] = useState<Comment>();
 
   const { data: issue } = useGetRepositoryIssue(id ?? "");
-  const { data: repositoryMembers } = useGetRepositoryMembers(
-    selectedRepository.id ?? ""
-  );
-  const { data: repositoryMilestones } =
-    useGetRepositoryMilestones(selectedRepository);
+  const { data: repositoryMembers } = useGetRepositoryMembers(selectedRepository.id ?? "");
+  const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const { data: issueEvents } = useGetIssueEvents(id ?? "");
-  const { data: repositoryLabels } = useGetRepositoryLabels(
-    selectedRepository,
-    search
-  );
-  const { data: quotedComments } = useGetTaskQuotedComments(issue);
+  const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
+  const { data: comments } = useGetTaskComments(id ?? "");
 
   const { mutateAsync: assignIssueToUser } = useAssignIssueToUser();
   const { mutateAsync: assignMilestoneToIssue } = useAssignMilestoneToIssue();
-  const { mutateAsync: unassignMilestoneFromIssue } =
-    useUnassignMilestoneFromIssue();
+  const { mutateAsync: unassignMilestoneFromIssue } = useUnassignMilestoneFromIssue();
   const { mutateAsync: closeIssue } = useCloseIssue();
   const { mutateAsync: reopenIssue } = useReopenIssue();
   const { mutateAsync: addComment } = useAddIssueComment();
@@ -144,39 +64,30 @@ export const IssueOverviewPage = () => {
   const { mutateAsync: unassignLabel } = useUnassignLabelFromIssue();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(
-    null
-  );
-  const [reactionPopper, setReactionPopper] =
-    React.useState<null | HTMLElement>(null);
-  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(
-    null
-  );
+  const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(null);
+  const [reactionPopper, setReactionPopper] = React.useState<null | HTMLElement>(null);
+  const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(null);
+  const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
 
-  const [selectedMilestone, setSelectedMilestone] = React.useState(
-    issue?.milestone?.id ?? ""
-  );
   const [currentComment, setCurrentComment] = React.useState("");
   const [replyComment, setReplyComment] = React.useState("");
 
-  const [displayedReactions, setDisplayedReactions] = React.useState<string[]>(
-    []
-  );
-  const [commentReactionForDeletion, setCommentReactionForDeletion] =
-    useState<Comment>();
+  const [displayedReactions, setDisplayedReactions] = React.useState<string[]>([]);
+  const [commentReactionForDeletion, setCommentReactionForDeletion] = useState<Comment>();
   const [reactionForDeletion, setReactionForDeletion] = useState<Reaction>();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const handleOpenEmojiPicker = (
-    event: React.MouseEvent<HTMLElement>,
-    comment
-  ) => {
+  const handleOpenEmojiPicker = (event: React.MouseEvent<HTMLElement>, comment: Comment) => {
     setCommentForReaction(comment);
     setEmojiPopper(emojiPopper ? null : event.currentTarget);
   };
+
+  useEffect(() => {
+    setSelectedMilestoneId(issue?.milestone?.id ?? "");
+  }, [issue]);
 
   const handleAddLabelClick = (event: React.MouseEvent<HTMLElement>) => {
     setLabelPopper(labelPopper ? null : event.currentTarget);
@@ -192,15 +103,10 @@ export const IssueOverviewPage = () => {
   const reactionsPopperId = reactionsOpen ? "simple-popper" : undefined;
   const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
 
-  const handleAssignUserToIssue = async (
-    member: RepositoryMemberPresenter,
-    flag: string
-  ) => {
+  const handleAssignUserToIssue = async (member: RepositoryMemberPresenter, flag: string) => {
     let assigneeIds = issue?.assignees.map((assignee) => assignee.id);
     if (flag === "remove")
-      assigneeIds = assigneeIds?.filter(
-        (assigneeId) => assigneeId !== member.id
-      );
+      assigneeIds = assigneeIds?.filter((assigneeId) => assigneeId !== member.id);
     else {
       assigneeIds?.push(member.id);
     }
@@ -209,13 +115,14 @@ export const IssueOverviewPage = () => {
       title: issue?.title ?? "",
       description: issue?.description ?? "",
       repositoryId: issue?.repositoryId ?? "",
-      labelsIds: issue?.labels ?? [],
-      milestoneId: issue?.milestone.id,
+      labelsIds: issue?.labels.map((l) => l.id) ?? [],
+      milestoneId: issue?.milestone?.id ?? "",
       state: issue?.state ?? -1,
       number: issue?.number ?? -1,
       assigneesIds: assigneeIds ?? [],
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const isMemberAnAssignee = (member: RepositoryMemberPresenter): boolean => {
@@ -227,14 +134,14 @@ export const IssueOverviewPage = () => {
   };
 
   const handleMilestoneChange = async (event: SelectChangeEvent) => {
-    setSelectedMilestone(event.target.value);
+    setSelectedMilestoneId(event.target.value);
     if (issue?.milestone) {
       await unassignMilestoneFromIssue({
         id: issue?.id ?? "",
         title: issue?.title ?? "",
         description: issue?.description ?? "",
         repositoryId: issue?.repositoryId ?? "",
-        labelsIds: issue?.labels ?? [],
+        labelsIds: issue?.labels.map((l) => l.id) ?? [],
         milestoneId: event.target.value,
         state: issue?.state ?? -1,
         number: issue?.number ?? -1,
@@ -246,14 +153,15 @@ export const IssueOverviewPage = () => {
         title: issue?.title ?? "",
         description: issue?.description ?? "",
         repositoryId: issue?.repositoryId ?? "",
-        labelsIds: issue?.labels ?? [],
+        labelsIds: issue?.labels.map((l) => l.id) ?? [],
         milestoneId: event.target.value,
         state: issue?.state ?? -1,
         number: issue?.number ?? -1,
         assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
       });
     }
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const handleAssignLabelToIssue = async (label: Label) => {
@@ -268,7 +176,8 @@ export const IssueOverviewPage = () => {
       number: issue?.number ?? -1,
       assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const handleUnassignLabelToIssue = async (label: Label) => {
@@ -283,17 +192,20 @@ export const IssueOverviewPage = () => {
       number: issue?.number ?? -1,
       assigneesIds: issue?.assignees.map((assignee) => assignee.id) ?? [],
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const handleCloseIssue = async () => {
     await closeIssue(issue?.id ?? "");
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const handleReopenIssue = async () => {
     await reopenIssue(issue?.id ?? "");
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["repository-issue", id] });
+    queryClient.invalidateQueries({ queryKey: ["issue-events", id] });
   };
 
   const handleAddComment = async () => {
@@ -302,30 +214,24 @@ export const IssueOverviewPage = () => {
       content: currentComment,
       parentId: null,
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
   };
 
-  const handleDeleteReaction = async (
-    comment: Comment,
-    reaction: Reaction,
-    username: string
-  ) => {
+  const handleDeleteReaction = async (username: string) => {
     const reactions = commentReactionForDeletion?.reactions.filter(
       (r) => r.emojiCode === reactionForDeletion?.emojiCode
     );
-    const foundReactionForDeletion = reactions?.find(
-      (r) => r.creator.username === username
-    );
+    const foundReactionForDeletion = reactions?.find((r) => r.creator.username === username);
     await deleteReaction(foundReactionForDeletion?.id ?? "");
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
   };
 
-  const handleEmojiClicked = async (event, commentId: string) => {
+  const handleEmojiClicked = async (event) => {
     await addReaction({
-      commentId: commentForReaction.id,
+      commentId: commentForReaction?.id ?? "",
       emojiCode: event.unified,
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
   };
 
   const getUniqueValues = (reactions: Reaction[]): Reaction[] => {
@@ -339,17 +245,10 @@ export const IssueOverviewPage = () => {
     });
   };
 
-  const displayUsersWithReaction = (
-    reaction: Reaction,
-    comment: Comment,
-    event
-  ) => {
-    console.log("displayed", comment.id);
+  const displayUsersWithReaction = (reaction: Reaction, comment: Comment, event) => {
     setCommentReactionForDeletion(comment);
     setReactionForDeletion(reaction);
-    const reactions = comment.reactions.filter(
-      (r) => r.emojiCode === reaction.emojiCode
-    );
+    const reactions = comment.reactions.filter((r) => r.emojiCode === reaction.emojiCode);
     const usernames = reactions?.map((r) => r.creator.username);
     setDisplayedReactions(usernames);
     setReactionPopper(reactionPopper ? null : event.currentTarget);
@@ -360,73 +259,47 @@ export const IssueOverviewPage = () => {
     if (event.eventType === 2)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username}</span>
           <span className="text-gray-500"> assigned this issue to </span>
-          <span className="text-white text-lg font-bold">
-            {event.assignee?.member?.username}
-          </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-white text-lg font-bold">{event.assignee?.member?.username}</span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
     if (event.eventType === 3)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}{" "}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username} </span>
           <span className="text-gray-500"> unassigned this issue from </span>
-          <span className="text-white text-lg font-bold">
-            {event.assignee.member.username}
-          </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-white text-lg font-bold">{event.assignee.member.username}</span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
     if (event.eventType === 4)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}{" "}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username} </span>
           <span className="text-gray-500"> added this issue to </span>
           <span className="text-white text-lg font-bold">
             {event?.milestone?.title ?? ""} milestone
           </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
     if (event.eventType === 5)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}{" "}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username} </span>
           <span className="text-gray-500"> removed this issue from </span>
           <span className="text-white text-lg font-bold">
             {event?.milestone?.title ?? ""} milestone
           </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
     if (event.eventType === 11)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}{" "}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username} </span>
           <span className="text-gray-500"> added the </span>
           <span className="text-white text-lg font-bold">
             <span
@@ -434,24 +307,19 @@ export const IssueOverviewPage = () => {
                 color: event?.label?.color,
                 borderColor: event?.label?.color,
               }}
-              className="border rounded-lg p-2 text-xl"
+              className="border rounded-md px-2 text-md"
             >
               {event?.label?.title ?? ""}
             </span>{" "}
             label
           </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
     if (event.eventType === 12)
       return (
         <div>
-          <span className="text-white text-lg font-bold">
-            {event.creator.username}{" "}
-          </span>
+          <span className="text-white text-lg font-bold">{event.creator.username} </span>
           <span className="text-gray-500"> removed the </span>
           <span className="text-white text-lg font-bold">
             <span
@@ -459,16 +327,13 @@ export const IssueOverviewPage = () => {
                 color: event?.label?.color,
                 borderColor: event?.label?.color,
               }}
-              className="border rounded-lg p-2 text-xl"
+              className="border rounded-md px-2 text-md"
             >
               {event?.label?.title ?? ""}
             </span>{" "}
             label
           </span>
-          <span className="text-gray-500">
-            {" "}
-            on {formatDate(event.createdAt)}
-          </span>
+          <span className="text-gray-500"> on {formatDate(event.createdAt)}</span>
         </div>
       );
   };
@@ -487,12 +352,12 @@ export const IssueOverviewPage = () => {
       content: replyComment,
       parentId: commentToReply.id,
     });
-    queryClient.invalidateQueries(["repository-issue", id]);
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
   };
 
   return (
-    <div className="p-10">
-      <div className="w-full flex flex-col">
+    <div className="pt-12 w-[1028px] mx-auto">
+      <div className="w-full">
         <div className="flex items-center gap-4 pt-4 pb-2">
           <div className="text-3xl text-white">{issue?.title ?? ""}</div>
           <div className="text-3xl text-gray-500">#{issue?.number}</div>
@@ -508,24 +373,23 @@ export const IssueOverviewPage = () => {
             </div>
           )}
           <div>
-            <span className="font-bold">
-              {issue?.events[0].creator.username}{" "}
-            </span>{" "}
-            opened this issue{" "}
-            {formatDate(issue?.events[0].createdAt ?? new Date())}
+            <span className="font-bold">{issue?.events[0].creator.username} </span> opened this
+            issue {formatDate(issue?.events[0].createdAt ?? new Date())}
           </div>
         </div>
         <div className="border"></div>
       </div>
 
       <div className="flex">
-        <div className="w-[70%] flex flex-col pl-14 ">
+        <div className="flex-grow">
           {issueEvents?.map((event) => (
-            <div className="p-4">{constructEventMessage(event)}</div>
+            <div className="mt-1" key={event.id}>
+              {constructEventMessage(event)}
+            </div>
           ))}
         </div>
 
-        <div className="w-[30%]">
+        <div className="w-[285px]">
           <div>
             <div className="flex gap-2 pt-10">
               <div className="text-gray-600">Assignees</div>
@@ -541,20 +405,14 @@ export const IssueOverviewPage = () => {
             >
               <div className="text-white">
                 {repositoryMembers.map((member) => (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" key={member.id}>
                     <div>{member.username}</div>
                     {isMemberAnAssignee(member) ? (
-                      <div
-                        onClick={() =>
-                          handleAssignUserToIssue(member, "remove")
-                        }
-                      >
+                      <div onClick={() => handleAssignUserToIssue(member, "remove")}>
                         <Trash2 color="white" />
                       </div>
                     ) : (
-                      <div
-                        onClick={() => handleAssignUserToIssue(member, "add")}
-                      >
+                      <div onClick={() => handleAssignUserToIssue(member, "add")}>
                         <PlusIcon color="white" />
                       </div>
                     )}
@@ -563,8 +421,8 @@ export const IssueOverviewPage = () => {
               </div>
             </Popper>
             <div className="p-2">
-              {issue?.assignees.map((assignee) => (
-                <div className="text-white text-xl">
+              {issue?.assignees.map((assignee, index) => (
+                <div className="text-white text-xl" key={index}>
                   {assignee.member.username}
                 </div>
               ))}
@@ -578,10 +436,10 @@ export const IssueOverviewPage = () => {
             </div>
             <FormControl fullWidth variant="standard">
               <Select
-                labelId="demo-simple-select-standard-label"
+                label="demo-simple-select-standard-label"
                 defaultValue={issue?.milestone?.title ?? ""}
                 id="demo-simple-select-standard"
-                value={selectedMilestone}
+                value={selectedmilestoneId}
                 onChange={handleMilestoneChange}
                 className="bg-white"
               >
@@ -589,30 +447,21 @@ export const IssueOverviewPage = () => {
                   <span>Clear</span>
                 </MenuItem>
                 {repositoryMilestones.map((milestone) => (
-                  <MenuItem
-                    key={milestone.id}
-                    value={milestone.id}
-                    className="w-full flex gap-3"
-                  >
+                  <MenuItem key={milestone.id} value={milestone.id} className="w-full flex gap-3">
                     <span>{milestone.title ?? ""}</span>
                     {milestone.closed ? (
-                      <span className="bg-red-600 text-white rounded-xl p-1">
-                        closed
-                      </span>
+                      <span className="bg-red-600 text-white rounded-xl p-1">closed</span>
                     ) : (
-                      <span className="bg-green-600 text-white rounded-xl p-1">
-                        open
-                      </span>
+                      <span className="bg-green-600 text-white rounded-xl p-1">open</span>
                     )}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
+
             <div className="mt-2">
-              {selectedMilestone && (
-                <MilestoneProgressBar
-                  milestoneId={selectedMilestone}
-                ></MilestoneProgressBar>
+              {selectedmilestoneId && (
+                <MilestoneProgressBar milestoneId={selectedmilestoneId}></MilestoneProgressBar>
               )}
             </div>
           </div>
@@ -620,11 +469,7 @@ export const IssueOverviewPage = () => {
           <div>
             <div className="flex gap-2 mt-4">
               <div className="text-gray-600">Labels</div>
-              <button
-                aria-describedby={id}
-                type="button"
-                onClick={handleAddLabelClick}
-              >
+              <button aria-describedby={id} type="button" onClick={handleAddLabelClick}>
                 <PlusIcon color="white" />
               </button>
             </div>
@@ -641,10 +486,10 @@ export const IssueOverviewPage = () => {
                   className="text-black"
                 ></Input>
                 {repositoryLabels.map((label) => (
-                  <div className={`flex justify-between gap-2 items-center`}>
+                  <div className={`flex justify-between gap-2 items-center`} key={label.id}>
                     <div
                       style={{ color: label.color, borderColor: label.color }}
-                      className="border rounded-lg p-2 text-xl"
+                      className="border rounded-md px-2 text-md"
                     >
                       {label.title}
                     </div>
@@ -661,11 +506,12 @@ export const IssueOverviewPage = () => {
                 ))}
               </div>
             </Popper>
-            <div className="flex flex-col gap-2 p-2">
+            <div className="flex flex-wrap gap-2 p-2">
               {issue?.labels.map((label) => (
                 <div
                   style={{ color: label.color, borderColor: label.color }}
-                  className={`flex justify-center border rounded-lg p-2 text-xl`}
+                  className={`flex justify-center border rounded-md px-2 text-md`}
+                  key={label.id}
                 >
                   {label.title}
                 </div>
@@ -678,10 +524,7 @@ export const IssueOverviewPage = () => {
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-white text-xl">Leave comment</span>
-        <textarea
-          name=""
-          onChange={(e) => setCurrentComment(e.target.value)}
-        ></textarea>
+        <textarea name="" onChange={(e) => setCurrentComment(e.target.value)}></textarea>
         <div className="flex justify-end">
           <Button onClick={handleAddComment} className="w-[150px]">
             Comment
@@ -690,185 +533,78 @@ export const IssueOverviewPage = () => {
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-white text-xl">Comments</span>
-        {issue?.comments.map(
-          (comment) =>
-            !comment.parentId && (
-              <div
-                className="text-white text border rounded-xl"
-                key={comment.id}
-              >
-                <div className="bg-blue-900 rounded-xl p-2">
-                  {comment.creator.username} added this at{" "}
-                  {formatDate(comment.createdAt)}
-                </div>
-                <div className="p-2">
-                  <Reply
-                    comment={comment}
-                    setCommentToReply={setCommentToReply}
-                    setReplyComment={setReplyComment}
-                    handleReplyToComment={handleReplyToComment}
-                  ></Reply>
-                  <div className="text-xl p-4">{comment.content}</div>
-                  <div className="flex gap-4">
-                    {getUniqueValues(comment.reactions).map(
-                      (reaction: Reaction) => (
-                        <>
-                          <div
-                            onClick={(e) =>
-                              displayUsersWithReaction(reaction, comment, e)
-                            }
-                          >
-                            {String.fromCodePoint(
-                              parseInt(`0x${reaction.emojiCode}`)
-                            )}
-                          </div>
-                          <Popper
-                            className="bg-white p-4 flex flex-col"
-                            id={reactionsPopperId}
-                            open={reactionsOpen}
-                            anchorEl={reactionPopper}
-                          >
-                            {displayedReactions.map((username) => (
-                              <div className="flex">
-                                <div>{username}</div>
-                                {currentUser?.username === username && (
-                                  <Trash2
-                                    onClick={() =>
-                                      handleDeleteReaction(
-                                        comment,
-                                        reaction,
-                                        username
-                                      )
-                                    }
-                                    color="red"
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </Popper>
-                        </>
-                      )
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-end pr-6">
-                  <Button onClick={(e) => handleOpenEmojiPicker(e, comment)}>
-                    <SmilePlusIcon></SmilePlusIcon>
-                  </Button>
-
-                  <Popper
-                    id={emojiPopperId}
-                    open={emojiOpen}
-                    anchorEl={emojiPopper}
-                  >
-                    <EmojiPicker
-                      onEmojiClick={(e, comment) =>
-                        handleEmojiClicked(e, comment.id)
-                      }
-                    />
-                  </Popper>
-                </div>
-              </div>
-            )
-        )}
-        <div></div>
       </div>
       <div className="flex flex-col gap-2">
-        {quotedComments &&
-          quotedComments.map((quotedComment: any) => (
-            <>
+        {comments &&
+          comments.map((quotedComment: CommentHierarchy) => (
+            <Fragment key={quotedComment?.comment?.id}>
               <div className="text-white text border rounded-xl">
-                <div className="bg-blue-900 rounded-xl p-2">
+                <div className="bg-blue-900 rounded-xl p-2 mb-2">
                   {quotedComment.comment.creator.username} added this at{" "}
                   {formatDate(quotedComment.comment.createdAt)}
-                </div>
-                <div className="flex gap-4">
-                  {getUniqueValues(quotedComment.comment.reactions).map(
-                    (reaction: Reaction) => (
-                      <>
-                        <div
-                          onClick={(e) =>
-                            displayUsersWithReaction(
-                              reaction,
-                              quotedComment.comment,
-                              e
-                            )
-                          }
-                        >
-                          {String.fromCodePoint(
-                            parseInt(`0x${reaction.emojiCode}`)
-                          )}
-                        </div>
-                        <Popper
-                          className="bg-white p-4 flex flex-col"
-                          id={reactionsPopperId}
-                          open={reactionsOpen}
-                          anchorEl={reactionPopper}
-                        >
-                          {displayedReactions.map((username) => (
-                            <div className="flex">
-                              <div>{username}</div>
-                              {currentUser?.username === username && (
-                                <Trash2
-                                  onClick={() =>
-                                    handleDeleteReaction(
-                                      quotedComment.comment,
-                                      reaction,
-                                      username
-                                    )
-                                  }
-                                  color="red"
-                                />
-                              )}
-                            </div>
-                          ))}
-                        </Popper>
-                      </>
-                    )
-                  )}
-                </div>
-                <div className="flex justify-end pr-6">
-                  <Button className="mt-2">
-                    <SmilePlusIcon
-                      onClick={(e) =>
-                        handleOpenEmojiPicker(e, quotedComment.comment)
-                      }
-                    ></SmilePlusIcon>
-                  </Button>
-
-                  <Popper
-                    id={emojiPopperId}
-                    open={emojiOpen}
-                    anchorEl={emojiPopper}
-                  >
-                    <EmojiPicker
-                      onEmojiClick={(e) =>
-                        handleEmojiClicked(e, quotedComment.comment.id)
-                      }
-                    />
-                  </Popper>
                 </div>
                 <Reply
                   comment={quotedComment.comment}
                   setCommentToReply={setCommentToReply}
                   setReplyComment={setReplyComment}
                   handleReplyToComment={handleReplyToComment}
-                ></Reply>
-                <CommentView
-                  // key={quotedComment.comment.id}
-                  comment={quotedComment}
-                  classname="text-white"
                 />
+                <CommentView comment={quotedComment} classname="text-white" />
+                <div className="mx-2 flex gap-2">
+                  {getUniqueValues(quotedComment.comment.reactions).map(
+                    (reaction: Reaction, index) => (
+                      <div
+                        onClick={(e) =>
+                          displayUsersWithReaction(reaction, quotedComment.comment, e)
+                        }
+                        key={index}
+                        className="flex flex-col"
+                      >
+                        {String.fromCodePoint(parseInt(`0x${reaction.emojiCode}`))}
+                        <Popper
+                          className="bg-white p-4 flex flex-col"
+                          id={reactionsPopperId}
+                          open={reactionsOpen}
+                          anchorEl={reactionPopper}
+                        >
+                          {displayedReactions.map((username, index) => (
+                            <div className="flex" key={index}>
+                              <div>{username}</div>
+                              {currentUser?.username === username && (
+                                <Trash2
+                                  onClick={() => handleDeleteReaction(username)}
+                                  color="red"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </Popper>
+                      </div>
+                    )
+                  )}
+                </div>
+                <div className="flex justify-end pr-6 pb-2">
+                  <Button className="mt-2">
+                    <SmilePlusIcon
+                      onClick={(e) => handleOpenEmojiPicker(e, quotedComment.comment)}
+                    ></SmilePlusIcon>
+                  </Button>
+
+                  <Popper id={emojiPopperId} open={emojiOpen} anchorEl={emojiPopper}>
+                    <EmojiPicker onEmojiClick={(e) => handleEmojiClicked(e)} />
+                  </Popper>
+                </div>
               </div>
-            </>
+            </Fragment>
           ))}
       </div>
-
-      {issue?.state === 0 ? (
-        <Button onClick={handleCloseIssue}>Close issue</Button>
-      ) : (
-        <Button onClick={handleReopenIssue}>Reopen issue</Button>
-      )}
+      <div className="py-4">
+        {issue?.state === 0 ? (
+          <Button onClick={handleCloseIssue}>Close issue</Button>
+        ) : (
+          <Button onClick={handleReopenIssue}>Reopen issue</Button>
+        )}
+      </div>
     </div>
   );
 };

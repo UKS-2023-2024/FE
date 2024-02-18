@@ -13,3 +13,9 @@ export type Comment = {
   reactions: Reaction[];
   parentId: string;
 };
+
+export type CommentHierarchy = {
+  parent: CommentHierarchy;
+  comment: Comment;
+};
+

@@ -8,11 +8,11 @@ import { useReopenPullRequest } from "../../api/mutations/pull-request/useReopen
 import { useGetPullRequest } from "../../api/query/pull-request/useGetPullRequest";
 import { useGetPullRequestEvents } from "../../api/query/pull-request/useGetPullRequestEvents";
 import { FormControl, Input, MenuItem, Popper, Select, SelectChangeEvent } from "@mui/material";
-import { PlusIcon, Trash2 } from "lucide-react";
+import { PlusIcon, SmilePlusIcon, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useGetRepositoryIssues } from "../../api/query/issue/useGetRepositoryIssues";
 import { useAtom } from "jotai";
-import { currentRepositoryAtom } from "../../store/store";
+import { currentRepositoryAtom, currentUserAtom } from "../../store/store";
 import { useAssignIssuesToPullRequest } from "../../api/mutations/pull-request/useAssignIssuesToPullRequest";
 import MilestoneProgressBar from "../../components/milestoneProgressBar/milestoneProgressBar";
 import { useGetRepositoryMilestones } from "../../api/query/milestone/useGetRepositoryMilestones";
@@ -32,8 +32,15 @@ import { useToast } from "../../components/toast";
 import { Label } from "../../store/model/label.model";
 import { useGetRepositoryLabels } from "../../api/query/labels/useGetRepositoryLabels";
 import { useAssignLabelsToPullRequest } from "../../api/mutations/pull-request/useAssignLabelsToPullRequest";
-import { useGetPrCommits } from "../../api/query/pull-request/useGetPrCommits";
-import { Commit } from "../../components/commit/Commit";
+import { useGetTaskComments } from "../../api/query/comment/useGetTaskComments";
+import { useAddIssueComment } from "../../api/mutations/comment/useAddIssueComment";
+import { useAddReaction } from "../../api/mutations/reaction/useAddReaction";
+import { useDeleteReaction } from "../../api/mutations/reaction/useDeleteReaction";
+import { Reaction } from "../../store/model/reaction.model";
+import { Comment } from "../../store/model/comment.model";
+import EmojiPicker from "emoji-picker-react";
+import { CommentView } from "../../components/comment/CommentView";
+import { Reply } from "../../components/comment/Reply";
 
 export const PullRequestOverviewPage = () => {
   const { id } = useParams();
@@ -50,6 +57,14 @@ export const PullRequestOverviewPage = () => {
   const [selectedMembers, setSelectedMembers] = useState<RepositoryMemberPresenter[]>([]);
   const [selectedmilestoneId, setSelectedMilestoneId] = useState<string>("");
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
+  const [commentToReply, setCommentToReply] = useState<any>();
+  const [commentForReaction, setCommentForReaction] = useState<Comment>();
+  const [displayedReactions, setDisplayedReactions] = React.useState<string[]>([]);
+  const [commentReactionForDeletion, setCommentReactionForDeletion] = useState<Comment>();
+  const [reactionForDeletion, setReactionForDeletion] = useState<Reaction>();
+  const [replyComment, setReplyComment] = React.useState("");
+  const [currentComment, setCurrentComment] = React.useState("");
+  const [currentUser] = useAtom(currentUserAtom);
 
   const { data: pr } = useGetPullRequest(id ?? "");
   const { data: prEvents } = useGetPullRequestEvents(id ?? "");
@@ -57,7 +72,7 @@ export const PullRequestOverviewPage = () => {
   const { data: repositoryMilestones } = useGetRepositoryMilestones(selectedRepository);
   const { data: repositoryIssues } = useGetRepositoryIssues(selectedRepository);
   const { data: repositoryLabels } = useGetRepositoryLabels(selectedRepository, search);
-  const { data: commits } = useGetPrCommits(id);
+  const { data: comments } = useGetTaskComments(id ?? "");
 
   const { mutateAsync: mergePullRequest } = useMergePullRequest();
   const { mutateAsync: closePr } = useClosePullRequest();
@@ -65,27 +80,37 @@ export const PullRequestOverviewPage = () => {
   const { mutateAsync: assignIssuesToPullRequest } = useAssignIssuesToPullRequest();
   const { mutateAsync: assignMilestoneToPullRequest } = useAssignMilestoneToPullRequest();
   const { mutateAsync: unassignMilestoneFromPullRequest } = useUnassignMilestoneFromPullRequest();
-  const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } = useAssignUsersToPullRequest();
+  const { mutateAsync: assignUsersToPullRequest, isError: isErrorUpdateAssignee } =
+    useAssignUsersToPullRequest();
   const { mutateAsync: assignLabelsToPullRequest } = useAssignLabelsToPullRequest();
+  const { mutateAsync: addComment } = useAddIssueComment();
+  const { mutateAsync: addReaction } = useAddReaction();
+  const { mutateAsync: deleteReaction } = useDeleteReaction();
 
   useEffect(() => {
     setSelectedIssues(pr?.issues == undefined ? [] : pr?.issues);
     setSelectedMembers(pr?.assignees == undefined ? [] : pr?.assignees);
     setSelectedMilestoneId(pr?.milestone?.id ?? "");
-    setSelectedLabels(pr?.labels == undefined ? [] : pr?.labels)
+    setSelectedLabels(pr?.labels == undefined ? [] : pr?.labels);
   }, [pr]);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [anchorElAssignee, setAnchorElAssignee] = React.useState<null | HTMLElement>(null);
   const [labelPopper, setLabelPopper] = React.useState<null | HTMLElement>(null);
+  const [emojiPopper, setEmojiPopper] = React.useState<null | HTMLElement>(null);
+  const [reactionPopper, setReactionPopper] = React.useState<null | HTMLElement>(null);
 
   const open = Boolean(anchorEl);
+  const emojiOpen = Boolean(emojiPopper);
+  const reactionsOpen = Boolean(reactionPopper);
   const openAssignee = Boolean(anchorElAssignee);
   const labelPopperOpen = Boolean(labelPopper);
 
   const popperId = open ? "simple-popper" : undefined;
   const popperIdAssignee = openAssignee ? "simple-popper" : undefined;
   const labelPopperId = labelPopperOpen ? "simple-popper" : undefined;
+  const emojiPopperId = emojiOpen ? "simple-popper" : undefined;
+  const reactionsPopperId = reactionsOpen ? "simple-popper" : undefined;
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -105,6 +130,11 @@ export const PullRequestOverviewPage = () => {
 
   const handleFilterLabels = (searchValue: string) => {
     setSearch(searchValue);
+  };
+
+  const handleOpenEmojiPicker = (event: React.MouseEvent<HTMLElement>, comment: Comment) => {
+    setCommentForReaction(comment);
+    setEmojiPopper(emojiPopper ? null : event.currentTarget);
   };
 
   const isIssueSelected = (issueToCheck: IssuePullRequestPresenter) => {
@@ -157,6 +187,61 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
 
+  const handleAddComment = async () => {
+    await addComment({
+      taskId: pr?.id ?? "",
+      content: currentComment,
+      parentId: null,
+    });
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
+  };
+
+  const handleDeleteReaction = async (username: string) => {
+    const reactions = commentReactionForDeletion?.reactions.filter(
+      (r) => r.emojiCode === reactionForDeletion?.emojiCode
+    );
+    const foundReactionForDeletion = reactions?.find((r) => r.creator.username === username);
+    await deleteReaction(foundReactionForDeletion?.id ?? "");
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
+  };
+
+  const getUniqueValues = (reactions: Reaction[]): Reaction[] => {
+    const seenReactions = new Set<string>();
+    return reactions.filter((reaction) => {
+      if (!seenReactions.has(reaction.emojiCode)) {
+        seenReactions.add(reaction.emojiCode);
+        return true;
+      }
+      return false;
+    });
+  };
+
+  const displayUsersWithReaction = (reaction: Reaction, comment: Comment, event) => {
+    setCommentReactionForDeletion(comment);
+    setReactionForDeletion(reaction);
+    const reactions = comment.reactions.filter((r) => r.emojiCode === reaction.emojiCode);
+    const usernames = reactions?.map((r) => r.creator.username);
+    setDisplayedReactions(usernames);
+    setReactionPopper(reactionPopper ? null : event.currentTarget);
+  };
+
+  const handleReplyToComment = async () => {
+    await addComment({
+      taskId: pr?.id ?? "",
+      content: replyComment,
+      parentId: commentToReply.id,
+    });
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
+  };
+
+  const handleEmojiClicked = async (event) => {
+    await addReaction({
+      commentId: commentForReaction?.id ?? "",
+      emojiCode: event.unified,
+    });
+    queryClient.invalidateQueries({ queryKey: ["task-comments", id] });
+  };
+
   const AddMember = async (memberToAdd: RepositoryMemberPresenter) => {
     setSelectedMembers([...selectedMembers, memberToAdd]);
     await assignUsersToPullRequest({
@@ -183,7 +268,6 @@ export const PullRequestOverviewPage = () => {
     queryClient.invalidateQueries({ queryKey: ["repository-pull-request", id] });
     queryClient.invalidateQueries({ queryKey: ["pull-request-events", id] });
   };
-
 
   const handleAssignLabel = async (labelToAdd: Label) => {
     setSelectedLabels([...selectedLabels, labelToAdd]);
@@ -265,7 +349,7 @@ export const PullRequestOverviewPage = () => {
 
       <div className="flex flex-col">
         <div className="flex">
-          <div className="flex flex-col flex-grow max-h-[350px] overflow-y-auto mr-4">
+          <div className="flex flex-col flex-grow max-h-[500px] overflow-y-auto mr-4">
             {prEvents?.map((event) => (
               <div key={event.id} className="mt-1">
                 <span className="text-white text-lg font-bold">{event.creator}</span>
@@ -307,7 +391,7 @@ export const PullRequestOverviewPage = () => {
             </Popper>
             <div className="p-1">
               {selectedMembers.map((member) => (
-                <div key={member.id} className="text-white text-l">
+                <div key={member.id} className="text-white text-lg">
                   {member.username}
                 </div>
               ))}
@@ -317,11 +401,7 @@ export const PullRequestOverviewPage = () => {
             <div>
               <div className="flex gap-2 mt-4">
                 <div className="text-gray-600">Labels</div>
-                <button
-                  aria-describedby={id}
-                  type="button"
-                  onClick={handleAddLabelClick}
-                >
+                <button aria-describedby={id} type="button" onClick={handleAddLabelClick}>
                   <PlusIcon color="white" />
                 </button>
               </div>
@@ -341,7 +421,7 @@ export const PullRequestOverviewPage = () => {
                     <div key={label.id} className={`flex justify-between gap-2 items-center`}>
                       <div
                         style={{ color: label.color, borderColor: label.color }}
-                        className="border rounded-lg p-2 text-xl"
+                        className="border rounded-md px-2 text-md"
                       >
                         {label.title}
                       </div>
@@ -358,11 +438,11 @@ export const PullRequestOverviewPage = () => {
                   ))}
                 </div>
               </Popper>
-              <div className="flex flex-col gap-2 p-2">
+              <div className="flex gap-2 p-2 flex-wrap">
                 {pr?.labels.map((label) => (
                   <div
                     style={{ color: label.color, borderColor: label.color }}
-                    className={`flex justify-center border rounded-lg p-2 text-xl`}
+                    className={`flex justify-center border rounded-md px-2 text-md`}
                     key={label.id}
                   >
                     {label.title}
@@ -371,7 +451,6 @@ export const PullRequestOverviewPage = () => {
               </div>
               <Button onClick={handleLabelsClick}>Labels</Button>
               <div className="mt-5 border"></div>
-
 
               <div className="flex gap-2 mt-4">
                 <div className="text-gray-600">Milestone</div>
@@ -455,13 +534,95 @@ export const PullRequestOverviewPage = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <div className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer" onClick={() => navigate('commits')}>
+          <div
+            className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer"
+            onClick={() => navigate("commits")}
+          >
             See Commits
           </div>
-          <div className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer" onClick={() => navigate('preview')}>
+          <div
+            className="border border-white p-3 text-white hover:bg-gray-500 cursor-pointer"
+            onClick={() => navigate("preview")}
+          >
             See File Changes @@@
           </div>
         </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-white text-xl">Leave comment</span>
+          <textarea name="" onChange={(e) => setCurrentComment(e.target.value)}></textarea>
+          <div className="flex justify-end">
+            <Button onClick={handleAddComment} className="w-[150px]">
+              Comment
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-white text-xl">Comments</span>
+        </div>
+        <div className="flex flex-col gap-2">
+          {comments &&
+            comments.map((quotedComment: any) => (
+              <>
+                <div className="text-white text border rounded-xl">
+                  <div className="bg-blue-900 rounded-xl p-2 mb-2">
+                    {quotedComment.comment.creator.username} added this at{" "}
+                    {formatDate(quotedComment.comment.createdAt)}
+                  </div>
+                  <Reply
+                    comment={quotedComment.comment}
+                    setCommentToReply={setCommentToReply}
+                    setReplyComment={setReplyComment}
+                    handleReplyToComment={handleReplyToComment}
+                  />
+                  <CommentView comment={quotedComment} classname="text-white" />
+                  <div className="mx-2 flex gap-2">
+                    {getUniqueValues(quotedComment.comment.reactions).map((reaction: Reaction) => (
+                      <>
+                        <div
+                          onClick={(e) =>
+                            displayUsersWithReaction(reaction, quotedComment.comment, e)
+                          }
+                          className="flex flex-col"
+                        >
+                          {String.fromCodePoint(parseInt(`0x${reaction.emojiCode}`))}
+                          <Popper
+                            className="bg-white p-4 flex flex-col"
+                            id={reactionsPopperId}
+                            open={reactionsOpen}
+                            anchorEl={reactionPopper}
+                          >
+                            {displayedReactions.map((username) => (
+                              <div className="flex">
+                                <div>{username}</div>
+                                {currentUser?.username === username && (
+                                  <Trash2
+                                    onClick={() => handleDeleteReaction(username)}
+                                    color="red"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </Popper>
+                        </div>
+                      </>
+                    ))}
+                  </div>
+                  <div className="flex justify-end pr-6 pb-2">
+                    <Button className="mt-2">
+                      <SmilePlusIcon
+                        onClick={(e) => handleOpenEmojiPicker(e, quotedComment.comment)}
+                      ></SmilePlusIcon>
+                    </Button>
+
+                    <Popper id={emojiPopperId} open={emojiOpen} anchorEl={emojiPopper}>
+                      <EmojiPicker onEmojiClick={(e) => handleEmojiClicked(e)} />
+                    </Popper>
+                  </div>
+                </div>
+              </>
+            ))}
+        </div>
+
         <div className="flex justify-center items-center h-full mt-10 gap-4">
           {pr?.state === 0 ? (
             <Button onClick={handleClosePr}>Close pull request</Button>

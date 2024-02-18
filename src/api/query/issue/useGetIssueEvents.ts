@@ -1,6 +1,5 @@
 import { useAxios } from "../../useAxios";
 import { useQuery } from "@tanstack/react-query";
-import { Event } from "../../../store/model/event.model";
 
 export const useGetIssueEvents = (id: string | null) => {
   const { axios } = useAxios();

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { UpdateIssueParams } from "../../../modules/issue/model/UpdateIssueParams";
 import { useAxios } from "../../useAxios";
 import { useToast } from "../../../components/toast";
+import { UpdateIssueParams } from "../../../models/issues/UpdateIssueParams";
 
 export const useUnassignMilestoneFromIssue = () => {
   const { axios } = useAxios();

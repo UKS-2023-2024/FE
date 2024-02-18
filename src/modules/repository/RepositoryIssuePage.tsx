@@ -13,14 +13,11 @@ export const RepositoryIssuePage = () => {
   const { name } = useParams();
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="w-[80%] flex gap-2 p-4">
-        <Button onClick={() => navigate(`/repository/${name}/milestones`)}>
-          Milestones
-        </Button>
-        <Button onClick={() => navigate(`/repository/${name}/issues/new`)}>
-          New issue
-        </Button>
+    <div className="w-[1028px] mx-auto pt-8">
+      <span className="text-white text-3xl font-bold">Issues</span>
+      <div className="flex gap-2 my-4">
+        <Button onClick={() => navigate(`/repository/${name}/milestones`)}>Milestones</Button>
+        <Button onClick={() => navigate(`/repository/${name}/issues/new`)}>New issue</Button>
       </div>
       <div className="w-full flex flex-col items-center gap-4">
         {repositoryIssues?.map((issue) => (
